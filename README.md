@@ -1,18 +1,7 @@
-# pizza-planet
- The Gadget Saga continues at the planet with best pizza in the galaxy!
-
-Pizza Lord will fall!
-
-Matt was here!
-
-Kevin's test.
-
-Make Git work Brandon
-
-  \  /
-  *  *
-    >
-  ___
- /   \
-
- LETS FUCKING GOO
+# test-app
+Test app for configuring MERN stack, and deployment
+# Run 'npm install' in client and server directories
+# Navigate to server folder
+# Docker initialize BASH command
+docker run -d \ --name pizza-mongo \ -p 27017:27017 \ -v pizza_mongo_data:/data/db \ mongo:7
+# Run 'npm run dev'
