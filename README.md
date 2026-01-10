@@ -1,5 +1,5 @@
-# test-app
-Test app for configuring MERN stack, and deployment
+# pizza-planet-app
+App for configuring MERN stack, and deployment
 # Run 'npm install' in client and server directories
 # Navigate to server folder
 # Docker initialize BASH command
