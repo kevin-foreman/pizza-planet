@@ -1,2 +1,12 @@
 // This file is optional and a placeholder in case we want to implement
 // an editor path, or intellisense help
+{
+	"compilerOptions":{
+		"baseUrl":"./",
+		"paths":{
+			"@/*":[
+				"src/*"
+			]
+		}
+	}
+}

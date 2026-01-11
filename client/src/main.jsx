@@ -5,16 +5,18 @@ import { StrictMode } from 'react'
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-
-// The order of the next 2 may cause problems keep an eye here if App needs to be first
+import { AuthProvider } from './context/AuthContext.jsx'
+// The order of the next 2 may cause problems keep an eye here if App needs to be first.
 import './index.css'
 import App from './App.jsx'
 
 // This will contain the primary frame for the application
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </React.StrictMode>
-);
+	<React.StrictMode>
+		<AuthProvider>
+			<BrowserRouter>
+				<App/>
+			</BrowserRouter>
+		</AuthProvider>
+	</React.StrictMode>
+)
