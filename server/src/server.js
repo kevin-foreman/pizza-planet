@@ -1,59 +1,24 @@
-import http from 'http';
-import app from './app.js';
-import { connectDB, mongoose } from "./config/db.js";
+import dotenv from "dotenv";
+dotenv.config({ path: new URL("../.env", import.meta.url) });
+import mongoose from "mongoose";
+import app from "./app.js";
 
 const PORT = process.env.PORT || 4000;
+const MONGO_URI = process.env.MONGO_URI;
 
-async function start() {
-  try {
-    await connectDB();
-
-    // Optional: visibility into connection lifecycle
-    mongoose.connection.on("disconnected", () => {
-      console.error("⚠️ MongoDB disconnected");
-    });
-    mongoose.connection.on("error", (err) => {
-      console.error("❌ MongoDB runtime error:", err?.message || err);
-    });
-
-    const server = http.createServer(app);
-
-    server.listen(PORT, () => {
-      console.log(`Pizza Planet API listening on port ${PORT}`);
-    });
-
-    // Graceful shutdown
-    const shutdown = async (signal) => {
-      console.log(`\n🛑 Received ${signal}. Shutting down...`);
-      server.close(async () => {
-        try {
-          await mongoose.connection.close(false);
-          console.log("✅ Closed MongoDB connection");
-        } catch (e) {
-          console.error("❌ Error closing MongoDB connection:", e?.message || e);
-        } finally {
-          process.exit(0);
-        }
-      });
-    };
-
-    process.on("SIGINT", () => shutdown("SIGINT"));
-    process.on("SIGTERM", () => shutdown("SIGTERM"));
-
-    process.on("unhandledRejection", (reason) => {
-      console.error("❌ Unhandled Rejection:", reason);
-      shutdown("unhandledRejection");
-    });
-
-    process.on("uncaughtException", (err) => {
-      console.error("❌ Uncaught Exception:", err);
-      shutdown("uncaughtException");
-    });
-  } catch (err) {
-    // If DB connect fails, do not keep the server up in a half-broken state
-    console.error("❌ Startup failed:", err?.message || err);
-    process.exit(1);
-  }
+if (!MONGO_URI) {
+  console.error("❌ Missing MONGO_URI in server/.env");
+  process.exit(1);
 }
 
-start();
+try {
+  await mongoose.connect(MONGO_URI);
+  console.log("✅ MongoDB connected");
+
+  app.listen(PORT, () => {
+    console.log(`✅ API listening on http://localhost:${PORT}`);
+  });
+} catch (err) {
+  console.error("❌ Failed to start server:", err);
+  process.exit(1);
+}

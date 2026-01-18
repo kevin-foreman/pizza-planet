@@ -1,11 +1,17 @@
-import { Navigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext.jsx'
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 
-export default function RequireRole({role,children}){
-	const {user}=useAuth()
+function routeForRole(role) {
+  if (role === "admin") return "/admin";
+  if (role === "staff") return "/staff/orders";
+  return "/menu";
+}
 
-	if(!user)return <Navigate to="/login" replace/>
-	if(user.role!==role)return <Navigate to="/login" replace/>
+export default function RequireRole({ role, children }) {
+  const { user } = useAuth();
 
-	return children
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role !== role) return <Navigate to={routeForRole(user.role)} replace />;
+
+  return children;
 }

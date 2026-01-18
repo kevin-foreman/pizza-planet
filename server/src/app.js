@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import authRoutes from "./routes/authRoutes.js";
 import pizzaRoutes from './routes/pizzaRoutes.js';
 import toppingRoutes from './routes/toppingRoutes.js';
 // import saladRoutes from './routes/saladRoutes.js';
@@ -30,6 +31,7 @@ app.get("/health", (req, res) => {
 
 app.use('/api/pizzas', pizzaRoutes);
 app.use('/api/toppings', toppingRoutes);
+app.use("/api/auth", authRoutes);
 // app.use('/api/salads', saladRoutes);
 // app.use('/api/calzones', calzoneRoutes);
 // app.use('/api/orders', orderRoutes);

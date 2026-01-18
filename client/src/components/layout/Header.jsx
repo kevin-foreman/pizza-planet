@@ -3,38 +3,43 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext.jsx'
 
 export default function Header() {
-	const { user, logout } = useAuth()
-	const navigate = useNavigate()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
 
-	function handleLogout() {
-		logout()
-		navigate('/login')
-	}
+  function handleLogout() {
+    logout()
+    navigate('/login')
+  }
 
-	return (
-		<header className="site-header">
-			<div className="header-row">
-				<h1 className="site-title">Pizza Planet</h1>
+  const greetingName = user?.displayName?.trim() || user?.email || 'User'
 
-				<div className="header-actions">
-					{user ? (
-						<>
-							<span>Welcome, {user.name}</span>
+  return (
+    <header className="site-header">
+      <div className="header-row">
+        <h1 className="site-title">Pizza Planet</h1>
 
-							{user.role === 'admin' && (
-								<Link to="/admin">Admin</Link>
-							)}
+        <div className="header-actions">
+          {user ? (
+            <>
+              <span>Welcome, {greetingName}</span>
 
-							<button type="button" onClick={handleLogout}>Logout</button>
-						</>
-					) : (
-						<Link to="/login">Login</Link>
-					)}
-				</div>
+              {user.role === 'admin' && (
+                <Link to="/admin">Admin</Link>
+              )}
 
-			</div>
+              {user.role === 'staff' && (
+                <Link to="/staff/orders">Staff</Link>
+              )}
 
-			<NavBar />
-		</header>
-	)
+              <button type="button" onClick={handleLogout}>Logout</button>
+            </>
+          ) : (
+            <Link to="/login">Login</Link>
+          )}
+        </div>
+      </div>
+
+      <NavBar />
+    </header>
+  )
 }

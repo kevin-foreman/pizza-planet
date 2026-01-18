@@ -1,43 +1,98 @@
-import React,{useState} from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext.jsx'
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 
-export default function LoginPage(){
-	const [role,setRole]=useState('customer')
-	const {login}=useAuth()
-	const navigate=useNavigate()
+function routeForRole(role) {
+  if (role === "admin") return "/admin";
+  if (role === "staff") return "/staff/orders";
+  return "/menu";
+}
 
-	function handleLogin(){
-		login(role)
+export default function LoginPage() {
+  const { login, signup } = useAuth();
+  const navigate = useNavigate();
 
-		if(role==='admin')navigate('/admin/pricing')
-		else if(role==='staff')navigate('/staff/orders')
-		else navigate('/menu')
-	}
+  const [mode, setMode] = useState("login"); // login | signup
+  const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-	return(
-		<div style={{maxWidth:'420px',margin:'40px auto'}}>
-			<h1>Login</h1>
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
-			<label style={{display:'block',marginBottom:'12px'}}>
-				Role
-				<select
-					value={role}
-					onChange={e=>setRole(e.target.value)}
-					style={{width:'100%',marginTop:'6px'}}
-				>
-					<option value="customer">Customer</option>
-					<option value="staff">Staff</option>
-					<option value="admin">Admin</option>
-				</select>
-			</label>
+  async function onSubmit(e) {
+    e.preventDefault();
+    setError("");
+    setBusy(true);
+    try {
+      const user =
+        mode === "signup"
+          ? await signup(email, password, displayName)
+          : await login(email, password);
 
-			<button
-				onClick={handleLogin}
-				style={{width:'100%',marginTop:'12px'}}
-			>
-				Login
-			</button>
-		</div>
-	)
+      navigate(routeForRole(user.role), { replace: true });
+    } catch (err) {
+      setError(err?.message || "Auth failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div style={{ maxWidth: "420px", margin: "40px auto" }}>
+      <h1>{mode === "signup" ? "Create Account" : "Sign In"}</h1>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+        <button type="button" disabled={busy} onClick={() => setMode("login")}>
+          Sign in
+        </button>
+        <button type="button" disabled={busy} onClick={() => setMode("signup")}>
+          Sign up
+        </button>
+      </div>
+
+      <form onSubmit={onSubmit} style={{ display: "grid", gap: 12 }}>
+        {mode === "signup" && (
+          <label>
+            Display name
+            <input
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              style={{ width: "100%", marginTop: 6 }}
+            />
+          </label>
+        )}
+
+        <label>
+          Email
+          <input
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{ width: "100%", marginTop: 6 }}
+          />
+        </label>
+
+        <label>
+          Password
+          <input
+            type="password"
+            autoComplete={mode === "signup" ? "new-password" : "current-password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={{ width: "100%", marginTop: 6 }}
+          />
+        </label>
+
+        {error ? <div style={{ color: "crimson" }}>{error}</div> : null}
+
+        <button type="submit" disabled={busy} style={{ width: "100%" }}>
+          {busy ? "Working..." : mode === "signup" ? "Create account" : "Sign in"}
+        </button>
+      </form>
+    </div>
+  );
 }

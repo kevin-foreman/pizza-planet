@@ -31,14 +31,19 @@ export function requireAuth(req, res, next) {
 
 export function requireRole(...allowedRoles) {
   return (req, res, next) => {
-    const roles = Array.isArray(req.user?.roles) ? req.user.roles : [];
-    const ok = allowedRoles.some((r) => roles.includes(r));
-
     if (!req.user) {
       const err = new Error("Not authorized");
       err.statusCode = 401;
       return next(err);
     }
+
+    const roles = Array.isArray(req.user?.roles)
+      ? req.user.roles
+      : req.user?.role
+        ? [req.user.role]
+        : [];
+
+    const ok = allowedRoles.some((r) => roles.includes(r));
 
     if (!ok) {
       const err = new Error("Forbidden");
