@@ -12,7 +12,7 @@ export default function LoginPage() {
   const { login, signup } = useAuth();
   const navigate = useNavigate();
 
-  const [mode, setMode] = useState("login"); // login | signup
+  const [mode, setMode] = useState("login");
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,13 +40,23 @@ export default function LoginPage() {
 
   return (
     <div style={{ maxWidth: "420px", margin: "40px auto" }}>
-      <h1>{mode === "signup" ? "Create Account" : "Sign In"}</h1>
-
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <button type="button" disabled={busy} onClick={() => setMode("login")}>
+      <h1 style={{ textAlign: "center" }}>
+        {mode === "signup" ? "Create Account" : "Sign In"}
+      </h1>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => setMode("login")}
+        >
           Sign in
         </button>
-        <button type="button" disabled={busy} onClick={() => setMode("signup")}>
+
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => setMode("signup")}
+        >
           Sign up
         </button>
       </div>
