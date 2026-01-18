@@ -12,7 +12,7 @@ const toppingSchema = new Schema(
     },
     type: {
       type: String,
-      enum: ['meat', 'veg', 'cheese', 'sauce', 'other'],
+      enum: ['meat', 'veggie', 'cheese', 'sauce', 'other'],
       default: 'other'
     },
     price: {
