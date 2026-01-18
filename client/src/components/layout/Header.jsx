@@ -60,7 +60,7 @@ export default function Header() {
 
 					{user ? (
 						<>
-							<span>Welcome, {user.name}</span>
+							<span>Welcome, {user.displayName}</span>
 
 							{user.role === 'admin' && (
 								<Link to="/admin">Admin</Link>
