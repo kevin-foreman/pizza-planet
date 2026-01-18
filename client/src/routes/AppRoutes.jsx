@@ -12,6 +12,7 @@ import OrderStatusPage from '../pages/OrderStatusPage.jsx'
 import AdminDashboardPage from '../pages/admin/AdminDashboardPage.jsx'
 import AdminPricingPage from '../pages/admin/AdminPricingPage.jsx'
 import StaffOrdersPage from '../pages/staff/StaffOrdersPage.jsx'
+import CartPage from '../pages/CartPage.jsx'
 
 import RequireRole from './RequireRole.jsx'
 
@@ -48,6 +49,7 @@ export default function AppRoutes() {
 			<Route path="/build/salad" element={<Navigate to="/builder/salad" replace />} />
 			<Route path="/build/calzone" element={<Navigate to="/builder/calzone" replace />} />
 
+			<Route path="/cart" element={<CartPage />} />
 			<Route path="/checkout" element={<CheckoutPage />} />
 			<Route path="/order/:orderId" element={<OrderStatusPage />} />
 			{/* roles */}
