@@ -4,28 +4,15 @@ import { useAuth } from '../../context/AuthContext.jsx'
 import { useCart } from '../../context/CartContext.jsx'
 
 export default function Header() {
-<<<<<<< HEAD
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
-=======
 	const { user, logout } = useAuth()
 	const { itemCount, subtotal } = useCart()
 	const navigate = useNavigate()
->>>>>>> 5704423a38274ba724d30239518cd5960a01cb39
 
-  function handleLogout() {
-    logout()
-    navigate('/login')
-  }
+	function handleLogout() {
+		logout()
+		navigate('/login')
+	}
 
-<<<<<<< HEAD
-  const greetingName = user?.displayName?.trim() || user?.email || 'User'
-
-  return (
-    <header className="site-header">
-      <div className="header-row">
-        <h1 className="site-title">Pizza Planet</h1>
-=======
 	function CartIcon({ count, total }) {
 		return (
 			<div className="cart-icon-wrap">
@@ -33,6 +20,7 @@ export default function Header() {
 				{count > 0 && (
 					<span className="cart-count">({count})</span>
 				)}
+
 				{/* cart Icon */}
 				<svg
 					width="22"
@@ -48,6 +36,7 @@ export default function Header() {
 					<circle cx="20" cy="21" r="1" />
 					<path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6" />
 				</svg>
+
 				{/* cart Total $ */}
 				{total > 0 && (
 					<span className="cart-subtotal">
@@ -57,7 +46,8 @@ export default function Header() {
 			</div>
 		)
 	}
-	{/* Top right  */ }
+
+	/* Top right */
 	return (
 		<header className="site-header">
 			<div className="header-row">
@@ -74,22 +64,15 @@ export default function Header() {
 					{user ? (
 						<>
 							<span>Welcome, {user.name}</span>
->>>>>>> 5704423a38274ba724d30239518cd5960a01cb39
 
-        <div className="header-actions">
-          {user ? (
-            <>
-              <span>Welcome, {greetingName}</span>
+							{user.role === 'admin' && (
+								<Link to="/admin">Admin</Link>
+							)}
 
-<<<<<<< HEAD
-              {user.role === 'admin' && (
-                <Link to="/admin">Admin</Link>
-              )}
+							{user.role === 'staff' && (
+								<Link to="/staff/orders">Staff</Link>
+							)}
 
-              {user.role === 'staff' && (
-                <Link to="/staff/orders">Staff</Link>
-              )}
-=======
 							<button type="button" onClick={handleLogout}>
 								Logout
 							</button>
@@ -99,17 +82,8 @@ export default function Header() {
 					)}
 				</div>
 			</div>
->>>>>>> 5704423a38274ba724d30239518cd5960a01cb39
 
-              <button type="button" onClick={handleLogout}>Logout</button>
-            </>
-          ) : (
-            <Link to="/login">Login</Link>
-          )}
-        </div>
-      </div>
-
-      <NavBar />
-    </header>
-  )
+			<NavBar />
+		</header>
+	)
 }

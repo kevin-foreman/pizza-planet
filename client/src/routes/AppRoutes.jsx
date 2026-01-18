@@ -1,16 +1,6 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
-<<<<<<< HEAD
-import LoginPage from "../pages/LoginPage.jsx";
-import HomePage from "../pages/HomePage.jsx";
-import MenuPage from "../pages/MenuPage.jsx";
-import PizzaBuilderPage from "../pages/PizzaBuilderPage.jsx";
-import SaladBuilderPage from "../pages/SaladBuilderPage.jsx";
-import CalzoneBuilderPage from "../pages/CalzoneBuilderPage.jsx";
-import CheckoutPage from "../pages/CheckoutPage.jsx";
-import OrderStatusPage from "../pages/OrderStatusPage.jsx";
-=======
 import LoginPage from '../pages/LoginPage.jsx'
 import HomePage from '../pages/HomePage.jsx'
 import MenuPage from '../pages/MenuPage.jsx'
@@ -23,11 +13,7 @@ import AdminDashboardPage from '../pages/admin/AdminDashboardPage.jsx'
 import AdminPricingPage from '../pages/admin/AdminPricingPage.jsx'
 import StaffOrdersPage from '../pages/staff/StaffOrdersPage.jsx'
 import CartPage from '../pages/CartPage.jsx'
->>>>>>> 5704423a38274ba724d30239518cd5960a01cb39
 
-import AdminDashboardPage from "../pages/admin/AdminDashboardPage.jsx";
-import AdminPricingPage from "../pages/admin/AdminPricingPage.jsx";
-import StaffOrdersPage from "../pages/staff/StaffOrdersPage.jsx";
 
 import RequireRole from "./RequireRole.jsx";
 
@@ -61,18 +47,13 @@ export default function AppRoutes() {
       <Route path="/build/salad" element={<Navigate to="/builder/salad" replace />} />
       <Route path="/build/calzone" element={<Navigate to="/builder/calzone" replace />} />
 
-<<<<<<< HEAD
+      <Route path="/cart" element={<CartPage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/order/:orderId" element={<OrderStatusPage />} />
-=======
-			<Route path="/cart" element={<CartPage />} />
-			<Route path="/checkout" element={<CheckoutPage />} />
-			<Route path="/order/:orderId" element={<OrderStatusPage />} />
-			{/* roles */}
-			<Route path="/admin" element={<AdminDashboardPage />} />
-			<Route path="/admin/pricing" element={<AdminPricingPage />} />
-			<Route path="/staff/orders" element={<StaffOrdersPage />} />
->>>>>>> 5704423a38274ba724d30239518cd5960a01cb39
+      {/* roles */}
+      <Route path="/admin" element={<AdminDashboardPage />} />
+      <Route path="/admin/pricing" element={<AdminPricingPage />} />
+      <Route path="/staff/orders" element={<StaffOrdersPage />} />
 
       {/* Staff (protected) */}
       <Route
