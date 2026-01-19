@@ -1,0 +1,30 @@
+import mongoose from 'mongoose'
+const { Schema, model } = mongoose
+
+const optionSchema = new Schema({
+    id: { type: String, required: true },
+    label: { type: String, required: true },
+}, { _id: false })
+
+const sizeSchema = new Schema({
+    id: { type: String, required: true },
+    label: { type: String, required: true },
+    mult: { type: Number, required: true },
+}, { _id: false })
+
+const pricedSchema = new Schema({
+    id: { type: String, required: true },
+    label: { type: String, required: true },
+    price: { type: Number, required: true },
+}, { _id: false })
+
+const pricingSchema = new Schema({
+    basePrice: { type: Number, required: true, default: 10.99 },
+    sizes: { type: [sizeSchema], default: [] },
+    crusts: { type: [optionSchema], default: [] },
+    sauces: { type: [optionSchema], default: [] },
+    toppings: { type: [pricedSchema], default: [] },
+    taxRate: { type: Number, default: 0 },
+}, { timestamps: true })
+
+export default model('Pricing', pricingSchema)

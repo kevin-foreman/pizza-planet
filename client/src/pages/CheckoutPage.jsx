@@ -40,7 +40,7 @@ function parseExp(mm, yy) {
 
 export default function CheckoutPage() {
 	const navigate = useNavigate()
-	const { items, subtotal, clearCart } = useCart()
+	const { items, subtotal, total, tipAmount, clearCart } = useCart()
 
 	const [cardNumber, setCardNumber] = useState('')
 	const [expMonth, setExpMonth] = useState('')
@@ -95,15 +95,26 @@ export default function CheckoutPage() {
 					expYear: expYear.trim(),
 				},
 				order: {
-					items,
+					items: items.map(i => ({
+						name: i.name,
+						qty: Number(i.qty || 1),
+						unitPrice: Number(i.unitPrice || 0),
+						type: i.type || 'item',
+						display: i.display || null,
+						config: i.config || null,
+						notes: i.notes || '',
+					})),
 					size: firstPizza?.display?.size || 'Medium',
 					crust: firstPizza?.display?.crust || 'Hand Tossed',
 					sauce: firstPizza?.display?.sauce || 'Tomato',
 					notes: firstPizza?.notes || '',
 					subtotal: Number(subtotal || 0),
+					tip: Number(tipAmount || 0),
 					tax: 0,
-					total: Number(subtotal || 0),
+					total: Number(total || subtotal || 0),
 				},
+
+
 			}
 
 			console.log('CHECKOUT payload:', payload)

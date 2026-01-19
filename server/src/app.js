@@ -9,6 +9,7 @@ import Topping from './models/Topping.js';
 import Salad from './models/Salad.js';
 import Calzone from './models/Calzone.js';
 import checkoutRoutes from './routes/checkoutRoutes.js';
+import Pricing from './models/Pricing.js'
 // import saladRoutes from './routes/saladRoutes.js';
 // import calzoneRoutes from './routes/calzoneRoutes.js';
 // import orderRoutes from './routes/orderRoutes.js';
@@ -54,6 +55,70 @@ app.get('/api/menu', async (req, res, next) => {
   }
 })
 
+
+
+app.get('/api/pricing', async (req, res) => {
+  try {
+    const doc = await Pricing.findOne().lean()
+    if (!doc) {
+      return res.status(404).json({ error: 'pricing doc missing' })
+    }
+    res.json(doc)
+  } catch (e) {
+    console.error('GET /api/pricing failed:', e)
+    res.status(500).send(e?.stack || e?.message || String(e))
+  }
+
+})
+
+app.patch('/api/pricing', async (req, res) => {
+  try {
+    const { basePrice, taxRate, sizes, crusts, sauces, toppings } = req.body || {}
+    const updated = await Pricing.findOneAndUpdate(
+      {},
+      {
+        $set: {
+          ...(basePrice !== undefined ? { basePrice } : {}),
+          ...(taxRate !== undefined ? { taxRate } : {}),
+          ...(sizes !== undefined ? { sizes } : {}),
+          ...(crusts !== undefined ? { crusts } : {}),
+          ...(sauces !== undefined ? { sauces } : {}),
+          ...(toppings !== undefined ? { toppings } : {}),
+        }
+      },
+      { new: true, upsert: true }
+    ).lean()
+    res.json(updated)
+  } catch (e) {
+    console.error('PATCH /api/pricing failed:', e)
+    res.status(500).send(e?.message || String(e))
+  }
+})
+
+
+app.put('/api/pricing', async (req, res) => {
+  try {
+    const payload = req.body
+    const updated = await Pricing.findOneAndUpdate(
+      {},
+      {
+        $set: {
+          basePrice: payload.basePrice,
+          sizes: payload.sizes,
+          crusts: payload.crusts,
+          sauces: payload.sauces,
+          toppings: payload.toppings,
+          taxRate: payload.taxRate || 0,
+        }
+      },
+      { new: true, upsert: true }
+    ).lean()
+    res.json(updated)
+  } catch (e) {
+    console.error('PUT /api/pricing failed:', e)
+    res.status(500).send(e?.message || String(e))
+  }
+})
 
 
 app.get("/health", (req, res) => {

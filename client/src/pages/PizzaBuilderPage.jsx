@@ -1,38 +1,14 @@
 import React, { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
 import { useNavigate } from 'react-router-dom'
+import { usePricing } from '../context/PricingContext.jsx'
 
 export default function PizzaBuilderPage() {
-    const sizes = useMemo(() => [
-        { id: 'sm', label: 'Small', mult: 1 },
-        { id: 'md', label: 'Medium', mult: 1.25 },
-        { id: 'lg', label: 'Large', mult: 1.5 },
-    ], [])
-
-    const crusts = useMemo(() => [
-        { id: 'thin', label: 'Thin' },
-        { id: 'hand', label: 'Hand Tossed' },
-        { id: 'pan', label: 'Pan' },
-    ], [])
-
-    const sauces = useMemo(() => [
-        { id: 'red', label: 'Tomato' },
-        { id: 'white', label: 'White Sauce' },
-        { id: 'bbq', label: 'BBQ' },
-    ], [])
-
-    const toppings = useMemo(() => [
-        { id: 'pep', label: 'Pepperoni', price: 1.25 },
-        { id: 'msh', label: 'Mushrooms', price: 0.85 },
-        { id: 'olv', label: 'Olives', price: 0.85 },
-        { id: 'on', label: 'Onions', price: 0.65 },
-        { id: 'gp', label: 'Green Peppers', price: 0.75 },
-        { id: 'ham', label: 'Ham', price: 1.35 },
-    ], [])
-
     const { addItem } = useCart()
+    const { pricing, error } = usePricing()
+    const navigate = useNavigate()
 
+    const [showAddModal, setShowAddModal] = useState(false)
     const [sizeId, setSizeId] = useState('md')
     const [crustId, setCrustId] = useState('hand')
     const [sauceId, setSauceId] = useState('red')
@@ -40,37 +16,32 @@ export default function PizzaBuilderPage() {
     const [notes, setNotes] = useState('')
     const [notice, setNotice] = useState('')
 
-    const size = useMemo(() => sizes.find(s => s.id === sizeId), [sizes, sizeId])
+    const sizes = pricing?.sizes || []
+    const crusts = pricing?.crusts || []
+    const sauces = pricing?.sauces || []
+    const toppings = pricing?.toppings || []
 
-    const crustLabel = useMemo(
-        () => crusts.find(c => c.id === crustId)?.label || '',
-        [crusts, crustId]
-    )
+    const basePrice = pricing?.basePrice ?? 10.99
 
-    const sauceLabel = useMemo(
-        () => sauces.find(s => s.id === sauceId)?.label || '',
-        [sauces, sauceId]
-    )
+    const size = useMemo(() => sizes.find(s => s.id === sizeId) || sizes[0] || { id: 'md', label: 'Medium', mult: 1 }, [sizes, sizeId])
+
+    const crustLabel = useMemo(() => crusts.find(c => c.id === crustId)?.label || '', [crusts, crustId])
+    const sauceLabel = useMemo(() => sauces.find(s => s.id === sauceId)?.label || '', [sauces, sauceId])
 
     const toppingLabels = useMemo(
         () => toppings.filter(t => selected[t.id]).map(t => t.label),
         [toppings, selected]
     )
 
-    const basePrice = 10.99
-
     const toppingsTotal = useMemo(() => {
         let sum = 0
         for (const t of toppings) {
-            if (selected[t.id]) sum += t.price
+            if (selected[t.id]) sum += Number(t.price || 0)
         }
         return sum
     }, [toppings, selected])
 
-    const total = useMemo(() => basePrice * size.mult + toppingsTotal, [basePrice, size, toppingsTotal])
-
-    const navigate = useNavigate()
-    const [showAddModal, setShowAddModal] = useState(false)
+    const total = useMemo(() => Number(basePrice) * Number(size.mult || 1) + toppingsTotal, [basePrice, size, toppingsTotal])
 
     function toggleTopping(id) {
         setSelected(prev => {
@@ -90,6 +61,7 @@ export default function PizzaBuilderPage() {
     }
 
     function addToCart() {
+        if (!pricing) return
         addItem({
             id: crypto.randomUUID(),
             type: 'pizza',
@@ -123,6 +95,15 @@ export default function PizzaBuilderPage() {
                 <h1>Build Your Pizza</h1>
                 <div style={{ display: 'flex', gap: '10px' }}></div>
             </div>
+            {error ? (
+                <div style={{ marginBottom: '12px', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '10px' }}>
+                    {error}
+                </div>
+            ) : null}
+
+            {!pricing ? (
+                <div style={{ padding: '16px' }}>Loading pricing...</div>
+            ) : null}
 
             {notice ? (
                 <div style={{ marginBottom: '12px', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '10px' }}>

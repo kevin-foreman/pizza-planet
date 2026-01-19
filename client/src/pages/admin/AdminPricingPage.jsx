@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 export default function AdminPricingPage() {
-	const [menu, setMenu] = useState({ toppings: [], entrees: [] })
+	const [menu, setMenu] = useState({ toppings: [], sizes: [], crusts: [], sauces: [], basePrice: 0, taxRate: 0 })
 	const [savedMsg, setSavedMsg] = useState('')
 	const [busy, setBusy] = useState(false)
 
@@ -10,7 +10,7 @@ export default function AdminPricingPage() {
 		let dead = false
 		async function load() {
 			try {
-				const res = await fetch('/api/menu')
+				const res = await fetch('/api/pricing')
 				const text = await res.text()
 
 				console.log('status', res.status)
@@ -41,7 +41,7 @@ export default function AdminPricingPage() {
 	function setLocalPrice(group, id, value) {
 		setMenu(prev => {
 			const next = { ...prev }
-			next[group] = next[group].map(x => x._id === id ? ({ ...x, price: value }) : x)
+			next[group] = (next[group] || []).map(x => x.id === id ? ({ ...x, price: value }) : x)
 			return next
 		})
 	}
@@ -49,21 +49,23 @@ export default function AdminPricingPage() {
 	async function savePrice(item) {
 		setBusy(true)
 		try {
-			let url = ''
-			if (item.entreeType === 'pizza') url = `/api/pizza/${item._id}`
-			else if (item.entreeType === 'salad') url = `/api/salad/${item._id}`
-			else if (item.entreeType === 'calzone') url = `/api/calzone/${item._id}`
-			else url = `/api/toppings/${item._id}`
+			let body = {}
+			if (item.entreeType) {
+				// no entrees in pricing doc, so skip or handle basePrice separately
+				throw new Error('Entrees not supported in pricing doc yet')
+			} else {
+				const nextToppings = (menu.toppings || []).map(x => x.id === item.id ? item : x)
+				body = { toppings: nextToppings }
+			}
 
-			const res = await fetch(url, {
+			const res = await fetch('/api/pricing', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ price: item.price }),
+				body: JSON.stringify(body),
 			})
-			if (!res.ok) {
-				const j = await res.json().catch(() => null)
-				throw new Error(j?.error || 'Save failed')
-			}
+			if (!res.ok) throw new Error(await res.text())
+			const updated = await res.json()
+			setMenu(updated)
 			setSavedMsg('Saved.')
 		} catch (e) {
 			setSavedMsg(e.message || 'Save failed')
@@ -71,6 +73,7 @@ export default function AdminPricingPage() {
 			setBusy(false)
 		}
 	}
+
 
 	return (
 		<div className="container">
@@ -98,7 +101,7 @@ export default function AdminPricingPage() {
 								step="0.01"
 								min="0"
 								value={t.price ?? 0}
-								onChange={e => setLocalPrice('toppings', t._id, Number(e.target.value))}
+								onChange={e => setLocalPrice('toppings', t.id, Number(e.target.value))}
 							/>
 							<button type="button" disabled={busy} onClick={() => savePrice(t)}>Save</button>
 						</div>
@@ -111,7 +114,7 @@ export default function AdminPricingPage() {
 
 				<div style={{ display: 'grid', gap: '10px' }}>
 					{(menu.entrees || []).map(e => (
-						<div key={e._id} style={{ display: 'grid', gridTemplateColumns: '1fr 140px 120px', gap: '12px', alignItems: 'center' }}>
+						<div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr 140px 120px', gap: '12px', alignItems: 'center' }}>
 							<div style={{ fontWeight: 600 }}>{e.name}</div>
 							<input
 								type="number"

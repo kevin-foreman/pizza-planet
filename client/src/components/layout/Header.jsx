@@ -51,13 +51,14 @@ export default function Header() {
 				<h1 className="site-title">Pizza Planet</h1>
 
 				<div className="header-actions">
-					<Link to="/cart" className="cart-link" aria-label="Cart">
-						<CartIcon
-							count={itemCount}
-							total={subtotal}
-						/>
-					</Link>
-
+					{itemCount > 0 && (
+						<Link to="/cart" className="cart-link" aria-label="Cart">
+							<CartIcon
+								count={itemCount}
+								total={subtotal}
+							/>
+						</Link>
+					)}
 					{user ? (
 						<>
 							<span>Welcome, {user.displayName}</span>

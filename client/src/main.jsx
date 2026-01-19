@@ -7,7 +7,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.jsx'
 import { CartProvider } from './context/CartContext.jsx'
-
+import { PricingProvider } from './context/PricingContext.jsx'
 // The order of the next 2 may cause problems keep an eye here if App needs to be first.
 import './index.css'
 import App from './App.jsx'
@@ -17,9 +17,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 	<React.StrictMode>
 		<AuthProvider>
 			<CartProvider>
-				<BrowserRouter>
-					<App/>
-				</BrowserRouter>
+				<PricingProvider>
+					<BrowserRouter>
+						<App />
+					</BrowserRouter>
+				</PricingProvider>
 			</CartProvider>
 		</AuthProvider>
 	</React.StrictMode>

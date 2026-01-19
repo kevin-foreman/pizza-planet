@@ -12,26 +12,32 @@ router.post("/checkout", async (req, res) => {
         }
 
         const subtotal = Number(order.subtotal || 0)
+        const tip = Number(order.tip || 0)
         const tax = Number(order.tax || 0)
-        const total = Number(order.total || subtotal + tax)
+        const total = Number(order.total || subtotal + tip + tax)
 
         const doc = await Order.create({
-            customerName: (customer?.name || "Guest").trim(),
-            notes: (order.notes || "").trim(),
-            size: order.size || "medium",
-            crust: order.crust || "regular",
-            sauce: order.sauce || "red",
+            customerName: (customer?.name || 'Guest').trim(),
+            notes: (order.notes || '').trim(),
+            size: order.size || 'Medium',
+            crust: order.crust || 'Hand Tossed',
+            sauce: order.sauce || 'Tomato',
             items: order.items.map(i => ({
-                toppingId: i.toppingId || i._id || undefined,
+                type: i.type || 'item',
                 name: i.name,
-                price: Number(i.price || 0),
                 qty: Number(i.qty || 1),
+                unitPrice: Number(i.unitPrice || 0),
+                display: i.display || null,
+                config: i.config || null,
+                notes: (i.notes || '').trim(),
             })),
             subtotal,
+            tip,
             tax,
             total,
-            status: "pending",
+            status: 'pending',
         })
+
 
         return res.status(200).json({ ok: true, orderId: String(doc._id) })
     } catch (err) {
