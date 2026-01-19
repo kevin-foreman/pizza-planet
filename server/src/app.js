@@ -8,7 +8,7 @@ import Pizza from './models/Pizza.js';
 import Topping from './models/Topping.js';
 import Salad from './models/Salad.js';
 import Calzone from './models/Calzone.js';
-
+import checkoutRoutes from './routes/checkoutRoutes.js';
 // import saladRoutes from './routes/saladRoutes.js';
 // import calzoneRoutes from './routes/calzoneRoutes.js';
 // import orderRoutes from './routes/orderRoutes.js';
@@ -24,7 +24,6 @@ app.use(
 ); // Vite dev origin
 app.use(express.json());
 app.use(morgan('dev'));
-
 // Small test routes
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Pizza Planet API is running" });
@@ -64,6 +63,7 @@ app.get("/health", (req, res) => {
 app.use('/api/pizzas', pizzaRoutes);
 app.use('/api/toppings', toppingRoutes);
 app.use("/api/auth", authRoutes);
+app.use('/api', checkoutRoutes);
 // app.use('/api/salads', saladRoutes);
 // app.use('/api/calzones', calzoneRoutes);
 // app.use('/api/orders', orderRoutes);

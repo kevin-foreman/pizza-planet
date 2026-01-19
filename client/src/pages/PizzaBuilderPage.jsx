@@ -67,10 +67,8 @@ export default function PizzaBuilderPage() {
         return sum
     }, [toppings, selected])
 
-    const total = useMemo(
-        () => basePrice * size.mult + toppingsTotal,
-        [basePrice, size, toppingsTotal]
-    )
+    const total = useMemo(() => basePrice * size.mult + toppingsTotal, [basePrice, size, toppingsTotal])
+
     const navigate = useNavigate()
     const [showAddModal, setShowAddModal] = useState(false)
 
@@ -218,7 +216,7 @@ export default function PizzaBuilderPage() {
                     <hr />
 
                     <div style={{ fontWeight: 800 }}>
-                        <span>Total</span>
+                        <span>Total </span>
                         <span>${total.toFixed(2)}</span>
                     </div>
 
@@ -234,7 +232,8 @@ export default function PizzaBuilderPage() {
                         <h3 className="modal-title">Added to cart</h3>
                         <p className="modal-text">Order more, or go to your cart?</p>
                         <div className="modal-actions">
-                            <button onClick={() => setShowAddModal(false) + reset()}>
+                            <button onClick={() => { setShowAddModal(false); reset() }}>
+
                                 Order More
                             </button>
 
