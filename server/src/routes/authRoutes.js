@@ -70,15 +70,16 @@ router.post("/signup", async (req, res, next) => {
       throw err
     }
 
-    // Safer default: do NOT let public signup create admin.
-    const safeRole = "customer"
+    // Default for first account to be admin.
+    const isFirst = (await User.countDocuments({})) === 0
+    const safeRole = isFirst ? "admin" : "customer"
+
 
     const existing = await User.findOne({ email: cleanEmail })
     if (existing) {
-      const err = new Error("Account already exists")
-      err.statusCode = 409
-      throw err
+      return res.status(409).json({ message: "E-mail already exists" })
     }
+
 
     const passwordHash = await bcrypt.hash(password, 12)
 
