@@ -10,6 +10,7 @@ import CalzoneBuilderPage from "../pages/CalzoneBuilderPage.jsx"
 import CheckoutPage from "../pages/CheckoutPage.jsx"
 import CartPage from "../pages/CartPage.jsx"
 import OrderConfirmationPage from "../pages/OrderConfirmationPage.jsx"
+import ToppingsPage from "../pages/admin/ToppingsPage.jsx"
 
 import AdminDashboardPage from "../pages/admin/AdminDashboardPage.jsx"
 import AdminPricingPage from "../pages/admin/AdminPricingPage.jsx"
@@ -70,6 +71,14 @@ export default function AppRoutes() {
         element={
           <RequireRole role="admin">
             <AdminPricingPage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/admin/toppings"
+        element={
+          <RequireRole role="admin">
+            <ToppingsPage />
           </RequireRole>
         }
       />

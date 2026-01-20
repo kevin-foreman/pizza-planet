@@ -1,4 +1,7 @@
 import express from 'express';
+import { deleteTopping } from "../controllers/toppingController.js";
+
+
 
 import {
   getAllToppings,
@@ -14,5 +17,6 @@ router.get('/', getAllToppings);
 router.post('/', createTopping);
 // PATCH /api/toppings/:id
 router.patch('/:id', updateTopping)
-
+// DELETE /api/toppings/:id
+router.delete("/:id", deleteTopping);
 export default router;
