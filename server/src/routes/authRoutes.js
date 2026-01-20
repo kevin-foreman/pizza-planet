@@ -26,11 +26,6 @@ function isValidDisplayName(name) {
   return /^[a-zA-Z0-9._-]{3,30}$/.test(name)
 }
 
-function cleanDisplayName(name) {
-  const s = String(name || "").trim()
-  return s.replace(/[^a-zA-Z0-9._-]/g, "").slice(0, 30)
-}
-
 function signToken(user) {
   const secret = process.env.JWT_SECRET
   return jwt.sign(

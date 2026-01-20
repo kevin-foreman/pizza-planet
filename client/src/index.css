@@ -887,6 +887,56 @@ section {
 	}
 }
 
+.toppings-block {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.topping-row {
+	display: grid;
+	grid-template-columns: 16px 1fr auto;
+	align-items: center;
+	gap: 8px;
+}
+
+.option-title {
+	text-align: center;
+	margin-bottom: 6px;
+}
+
+.topping-row input {
+	margin: 0;
+}
+
+.topping-label {
+	cursor: pointer;
+	line-height: 1.2;
+}
+
+.topping-price {
+	opacity: .8;
+	font-size: .9em;
+	white-space: nowrap;
+}
+
+
+.topping-price {
+	opacity: .8;
+	font-size: .9em;
+	white-space: nowrap;
+}
+
+.topping-left {
+	display: contents;
+}
+
+.topping-left input {
+	margin: 0;
+	/* remove default checkbox margins */
+}
+
+
 .toppings-admin .money {
 	position: relative;
 }
