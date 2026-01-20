@@ -1,46 +1,37 @@
-import React, { useMemo, useState } from 'react'
-import { useCart } from '../context/CartContext.jsx'
-import { useNavigate } from 'react-router-dom'
-import { usePricing } from '../context/PricingContext.jsx'
+import React, { useEffect, useMemo, useState } from "react"
+import { useCart } from "../context/CartContext.jsx"
+import { useNavigate, useLocation } from "react-router-dom"
+import { usePricing } from "../context/PricingContext.jsx"
 
 export default function PizzaBuilderPage() {
 	const { addItem } = useCart()
-	const { pricing, toppings, error } = usePricing()
+	const { pricing, toppings, error, refreshPricing } = usePricing()
 
 	const navigate = useNavigate()
+	const location = useLocation()
+
+	useEffect(() => {
+		refreshPricing()
+	}, [location.pathname])
 
 	const [showAddModal, setShowAddModal] = useState(false)
-	const [sizeId, setSizeId] = useState('md')
-	const [crustId, setCrustId] = useState('hand')
-	const [sauceId, setSauceId] = useState('red')
+	const [sizeId, setSizeId] = useState("md")
+	const [crustId, setCrustId] = useState("hand")
+	const [sauceId, setSauceId] = useState("red")
 	const [selected, setSelected] = useState({})
-	const [notes, setNotes] = useState('')
-	const [notice, setNotice] = useState('')
+	const [notes, setNotes] = useState("")
+	const [notice, setNotice] = useState("")
 
 	const sizes = pricing?.sizes || []
 	const crusts = pricing?.crusts || []
 	const sauces = pricing?.sauces || []
 	const basePrice = pricing?.basePrice ?? 10.99
 
-	const size = useMemo(
-		() => sizes.find(s => s.id === sizeId) || sizes[0] || { id: 'md', label: 'Medium', mult: 1 },
-		[sizes, sizeId]
-	)
+	const size = useMemo(() => sizes.find(s => s.id === sizeId) || sizes[0] || { id: "md", label: "Medium", mult: 1 }, [sizes, sizeId])
+	const crustLabel = useMemo(() => crusts.find(c => c.id === crustId)?.label || "", [crusts, crustId])
+	const sauceLabel = useMemo(() => sauces.find(s => s.id === sauceId)?.label || "", [sauces, sauceId])
 
-	const crustLabel = useMemo(
-		() => crusts.find(c => c.id === crustId)?.label || '',
-		[crusts, crustId]
-	)
-
-	const sauceLabel = useMemo(
-		() => sauces.find(s => s.id === sauceId)?.label || '',
-		[sauces, sauceId]
-	)
-
-	const toppingLabels = useMemo(
-		() => toppings.filter(t => selected[t.id]).map(t => t.label),
-		[toppings, selected]
-	)
+	const toppingLabels = useMemo(() => toppings.filter(t => selected[t.id]).map(t => t.label), [toppings, selected])
 
 	const toppingsTotal = useMemo(() => {
 		let sum = 0
@@ -50,10 +41,7 @@ export default function PizzaBuilderPage() {
 		return sum
 	}, [toppings, selected])
 
-	const total = useMemo(
-		() => Number(basePrice) * Number(size.mult || 1) + toppingsTotal,
-		[basePrice, size, toppingsTotal]
-	)
+	const total = useMemo(() => Number(basePrice) * Number(size.mult || 1) + toppingsTotal, [basePrice, size, toppingsTotal])
 
 	function toggleTopping(id) {
 		setSelected(prev => {

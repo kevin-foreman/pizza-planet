@@ -13,8 +13,10 @@ router.post("/checkout", async (req, res) => {
 
         const subtotal = Number(order.subtotal || 0)
         const tip = Number(order.tip || 0)
-        const tax = Number(order.tax || 0)
-        const total = Number(order.total || subtotal + tip + tax)
+        const taxRate = pricing?.taxRate ?? 0
+        const tax = +(subtotal * taxRate).toFixed(2)
+        const total = +(subtotal + tip + tax).toFixed(2)
+
 
         const doc = await Order.create({
             customerName: (customer?.name || 'Guest').trim(),

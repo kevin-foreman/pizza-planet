@@ -753,10 +753,10 @@ section {
 	transform: translateX(-50%) translateY(-4px);
 }
 
-/*==============================*/
-/* TOPPINGS ADMIN (SCOPED)      */
-/*==============================*/
-/* This is NEW. Scoped under .toppings-admin so it won’t affect other pages. */
+/*========================== ===*/
+/* TOPPINGS ADMIN       */
+/*============================*/
+
 
 .toppings-admin {
 	margin: 0 auto;
@@ -886,6 +886,35 @@ section {
 		grid-template-columns: 1fr;
 	}
 }
+
+/*Deletion boxes*/
+.card {
+	position: relative;
+}
+
+.confirm-pop {
+	position: absolute;
+	inset: 0;
+	z-index: 50;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	background: rgba(0, 0, 0, .70);
+	border-radius: 12px;
+}
+
+.confirm-pop p {
+	margin: 0;
+	text-align: center;
+}
+
+.confirm-pop .confirm-actions {
+	display: flex;
+	gap: 10px;
+}
+
 
 .toppings-block {
 	display: flex;
@@ -1194,4 +1223,8 @@ section {
 
 .users-admin .user-actions {
 	gap: 10px;
+}
+
+.card {
+	position: relative;
 }

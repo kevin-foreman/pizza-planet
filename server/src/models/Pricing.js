@@ -12,19 +12,14 @@ const sizeSchema = new Schema({
     mult: { type: Number, required: true },
 }, { _id: false })
 
-const pricedSchema = new Schema({
-    id: { type: String, required: true },
-    label: { type: String, required: true },
-    price: { type: Number, required: true },
-}, { _id: false })
-
 const pricingSchema = new Schema({
+    key: { type: String, unique: true, default: "singleton" },
     basePrice: { type: Number, required: true, default: 10.99 },
     sizes: { type: [sizeSchema], default: [] },
     crusts: { type: [optionSchema], default: [] },
     sauces: { type: [optionSchema], default: [] },
-    toppings: { type: [pricedSchema], default: [] },
     taxRate: { type: Number, default: 0 },
 }, { timestamps: true })
+
 
 export default model('Pricing', pricingSchema)

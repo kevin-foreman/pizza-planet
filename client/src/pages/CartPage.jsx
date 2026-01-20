@@ -1,40 +1,31 @@
-import React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useCart } from '../context/CartContext.jsx'
+import React, { useMemo } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { useCart } from "../context/CartContext.jsx"
+import { usePricing } from "../context/PricingContext.jsx"
 
 export default function CartPage() {
-	// Cart state + actions
-	const {
-		items,
-		removeItem,
-		setQty,
-		clearCart,
-		subtotal,
-		tipAmount,
-		setTipAmount,
-		total,
-	} = useCart()
-
+	const { items, removeItem, setQty, clearCart, subtotal, tipAmount, setTipAmount } = useCart()
+	const { pricing } = usePricing()
 	const navigate = useNavigate()
 
-	// Helper: keep tips sane (no negatives, 2 decimals)
+	const taxRate = Number(pricing?.taxRate || 0)
+	const tax = useMemo(() => +(Number(subtotal || 0) * taxRate).toFixed(2), [subtotal, taxRate])
+	const total = useMemo(() => +(Number(subtotal || 0) + Number(tipAmount || 0) + tax).toFixed(2), [subtotal, tipAmount, tax])
+
 	function setTip(value) {
 		const n = Number(value) || 0
 		const clean = Math.max(0, Math.round(n * 100) / 100)
 		setTipAmount(clean)
 	}
 
-	// Helper: calculate percent tip from subtotal
 	function tipFromPct(pct) {
-		const t = Math.round(subtotal * pct * 100) / 100
+		const t = Math.round(Number(subtotal || 0) * pct * 100) / 100
 		setTip(t)
 	}
 
 	function goCheckout() {
-		console.log('CartPage goCheckout fired')
-		navigate('/checkout')
+		navigate("/checkout")
 	}
-
 
 	return (
 		<div className="page">
@@ -44,9 +35,9 @@ export default function CartPage() {
 			</div>
 
 			{items.length === 0 ? (
-				<div className="panel" style={{ textAlign: 'center' }}>
-					<p style={{ opacity: 0.85 }}>Your cart is empty.</p>
-					<div style={{ marginTop: '12px' }}>
+				<div className="panel" style={{ textAlign: "center" }}>
+					<p style={{ opacity: .85 }}>Your cart is empty.</p>
+					<div style={{ marginTop: "12px" }}>
 						<Link to="/menu" className="primary-btn">Browse Menu</Link>
 					</div>
 				</div>
@@ -61,37 +52,22 @@ export default function CartPage() {
 									<div key={i.id} className="order-card hover-box">
 										<div className="order-top">
 											<div>
-												<div className="order-id">{i.name || 'Item'}</div>
+												<div className="order-id">{i.name || "Item"}</div>
 
 												<div className="order-meta">
-													<span className="pill pill-RECEIVED">{(i.type || 'item').toUpperCase()}</span>
-													{i.display?.size ? (
-														<>
-															<span className="dot">•</span>
-															<span>{i.display.size}</span>
-														</>
-													) : null}
-													{i.display?.crust ? (
-														<>
-															<span className="dot">•</span>
-															<span>{i.display.crust}</span>
-														</>
-													) : null}
-													{i.display?.sauce ? (
-														<>
-															<span className="dot">•</span>
-															<span>{i.display.sauce}</span>
-														</>
-													) : null}
+													<span className="pill pill-RECEIVED">{(i.type || "item").toUpperCase()}</span>
+													{i.display?.size ? (<><span className="dot">•</span><span>{i.display.size}</span></>) : null}
+													{i.display?.crust ? (<><span className="dot">•</span><span>{i.display.crust}</span></>) : null}
+													{i.display?.sauce ? (<><span className="dot">•</span><span>{i.display.sauce}</span></>) : null}
 												</div>
 											</div>
 
-											<div className="order-total">${(i.unitPrice || 0).toFixed(2)}</div>
+											<div className="order-total">${Number(i.unitPrice || 0).toFixed(2)}</div>
 										</div>
 
 										{i.display?.toppings && i.display.toppings.length > 0 ? (
-											<div style={{ marginTop: '10px', opacity: 0.9 }}>
-												<b>Toppings:</b> {i.display.toppings.join(', ')}
+											<div style={{ marginTop: "10px", opacity: .9 }}>
+												<b>Toppings:</b> {i.display.toppings.join(", ")}
 											</div>
 										) : null}
 
@@ -102,28 +78,20 @@ export default function CartPage() {
 										) : null}
 
 										<div className="order-actions">
-											<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-												<span style={{ opacity: 0.85 }}>Qty</span>
-												<input
-													type="number"
-													min="1"
-													value={i.qty || 1}
-													onChange={e => setQty(i.id, e.target.value)}
-													style={{ maxWidth: '90px' }}
-												/>
+											<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+												<span style={{ opacity: .85 }}>Qty</span>
+												<input type="number" min="1" value={i.qty || 1} onChange={e => setQty(i.id, e.target.value)} style={{ maxWidth: "90px" }} />
 											</div>
 
 											<div className="order-actions-split" />
 
-											<button type="button" className="btn-danger" onClick={() => removeItem(i.id)}>
-												Remove
-											</button>
+											<button type="button" className="btn-danger" onClick={() => removeItem(i.id)}>Remove</button>
 										</div>
 									</div>
 								))}
 							</div>
 
-							<div style={{ marginTop: '14px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+							<div style={{ marginTop: "14px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
 								<button type="button" className="btn-ghost" onClick={clearCart}>Clear Cart</button>
 								<Link to="/builder/pizza">Build Another Pizza</Link>
 								<Link to="/menu">Menu</Link>
@@ -133,52 +101,47 @@ export default function CartPage() {
 						<aside className="panel">
 							<h2>Summary</h2>
 
-							<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+							<div style={{ display: "flex", justifyContent: "space-between" }}>
 								<span>Subtotal</span>
-								<span>${subtotal.toFixed(2)}</span>
+								<span>${Number(subtotal || 0).toFixed(2)}</span>
 							</div>
 
-							<div style={{ marginTop: '12px' }}>
-								<div style={{ fontWeight: 700, marginBottom: '8px' }}>Tip</div>
+							<div style={{ marginTop: "12px" }}>
+								<div style={{ fontWeight: 700, marginBottom: "8px" }}>Tip</div>
 
-								<div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+								<div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
 									<button type="button" className="btn-ghost" onClick={() => setTip(0)}>No tip</button>
-									<button type="button" className="btn-ghost" onClick={() => tipFromPct(0.10)}>10%</button>
-									<button type="button" className="btn-ghost" onClick={() => tipFromPct(0.15)}>15%</button>
-									<button type="button" className="btn-ghost" onClick={() => tipFromPct(0.20)}>20%</button>
+									<button type="button" className="btn-ghost" onClick={() => tipFromPct(.10)}>10%</button>
+									<button type="button" className="btn-ghost" onClick={() => tipFromPct(.15)}>15%</button>
+									<button type="button" className="btn-ghost" onClick={() => tipFromPct(.20)}>20%</button>
 								</div>
 
-								<div style={{ marginTop: '10px' }}>
-									<label style={{ display: 'block', fontWeight: 600, marginBottom: '6px', opacity: 0.9 }}>
-										Custom tip ($)
-									</label>
-									<input
-										type="number"
-										min="0"
-										step="0.01"
-										value={tipAmount}
-										onChange={e => setTip(e.target.value)}
-									/>
+								<div style={{ marginTop: "10px" }}>
+									<label style={{ display: "block", fontWeight: 600, marginBottom: "6px", opacity: .9 }}>Custom tip ($)</label>
+									<input type="number" min="0" step=".01" value={tipAmount} onChange={e => setTip(e.target.value)} />
 								</div>
 
-								<div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', opacity: 0.95 }}>
+								<div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px", opacity: .95 }}>
 									<span>Tip amount</span>
-									<span>${(Number(tipAmount) || 0).toFixed(2)}</span>
+									<span>${Number(tipAmount || 0).toFixed(2)}</span>
+								</div>
+
+								<div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px", opacity: .95 }}>
+									<span>Tax ({(taxRate * 100).toFixed(2)}%)</span>
+									<span>${tax.toFixed(2)}</span>
 								</div>
 							</div>
 
-							<hr style={{ margin: '12px 0' }} />
+							<hr style={{ margin: "12px 0" }} />
 
-							<div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '18px' }}>
+							<div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: "18px" }}>
 								<span>Total</span>
 								<span>${total.toFixed(2)}</span>
 							</div>
 
-							<button type="button" onClick={goCheckout} style={{ width: '100%', marginTop: '12px', padding: '10px' }}>
-								Checkout
-							</button>
+							<button type="button" onClick={goCheckout} style={{ width: "100%", marginTop: "12px", padding: "10px" }}>Checkout</button>
 
-							<p style={{ fontSize: '13px', opacity: 0.8, marginTop: '10px' }}>
+							<p style={{ fontSize: "13px", opacity: .8, marginTop: "10px" }}>
 								This is session cart only for now (local storage). Orders will be connected next.
 							</p>
 						</aside>

@@ -1,118 +1,104 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react"
+import { useLocation } from "react-router-dom"
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API = import.meta.env.VITE_API_URL || "http://localhost:4000"
 
 export default function ToppingsPage() {
-    const [toppings, setToppings] = useState([]);
-    const [busy, setBusy] = useState(false);
-    const [error, setError] = useState("");
-    const [form, setForm] = useState({ name: "", type: "other", price: "", isPremium: false, isAvailable: true });
+    const [toppings, setToppings] = useState([])
+    const [busy, setBusy] = useState(false)
+    const [error, setError] = useState("")
+    const [form, setForm] = useState({ name: "", type: "other", price: "", isPremium: false, isAvailable: true })
+    const [confirmDelete, setConfirmDelete] = useState(null)
+
+    const location = useLocation()
+
+    useEffect(() => {
+        load()
+    }, [location.pathname])
 
     async function load() {
-        setError("");
         try {
-            const r = await fetch(`${API}/api/toppings`);
-            const data = await r.json();
-            if (!r.ok) throw new Error(data?.message || "Failed to load toppings");
-            setToppings(Array.isArray(data) ? data : (data.toppings || []));
+            setError("")
+            const r = await fetch(`${API}/api/toppings?ts=${Date.now()}`, {
+                cache: "no-store",
+                headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" },
+            })
+            if (!r.ok) {
+                const text = await r.text().catch(() => "")
+                throw new Error(text || `Failed to load toppings (${r.status})`)
+            }
+            const data = await r.json()
+            setToppings(Array.isArray(data) ? data : (data.toppings || []))
         } catch (e) {
-            setError(e.message || "Failed to load toppings");
+            setError(String(e.message || "Failed to load toppings"))
         }
     }
-
-    useEffect(() => { load(); }, []);
 
     function onChange(e) {
-        const { name, value, type, checked } = e.target;
-        setForm(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+        const { name, value, type, checked } = e.target
+        setForm(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }))
     }
-    // Price input with only two decimals and maxing at $1,000 Change n>1000 for a different amount, idk.
+
     function onPriceChange(e) {
-        let v = e.target.value;
-
-        // allow empty
-        if (v === "") {
-            setForm(p => ({ ...p, price: "" }));
-            return;
-        }
-
-        // digits, optional decimal, max TWO decimals
-        if (!/^\d*(\.\d{0,2})?$/.test(v)) return;
-
-        // numeric max = 1000
-        const n = Number(v);
-        if (n > 1000) return;
-
-        setForm(p => ({ ...p, price: v }));
+        let v = e.target.value
+        if (v === "") { setForm(p => ({ ...p, price: "" })); return }
+        if (!/^\d*(\.\d{0,2})?$/.test(v)) return
+        const n = Number(v)
+        if (n > 1000) return
+        setForm(p => ({ ...p, price: v }))
     }
-
-
-
 
     async function addTopping(e) {
-        e.preventDefault();
-        setBusy(true);
-        setError("");
+        e.preventDefault()
+        setBusy(true)
+        setError("")
         try {
-            const payload = {
-                name: form.name.trim(),
-                type: form.type,
-                price: Number(form.price) || 0,
-                isPremium: !!form.isPremium,
-                isAvailable: !!form.isAvailable
-            };
-            const r = await fetch(`${API}/api/toppings`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-            const data = await r.json();
-            if (!r.ok) throw new Error(data?.message || "Failed to add topping");
-            setForm({ name: "", type: "other", price: "", isPremium: false, isAvailable: true });
-            await load();
+            const payload = { name: form.name.trim(), type: form.type, price: Number(form.price) || 0, isPremium: !!form.isPremium, isAvailable: !!form.isAvailable }
+            const r = await fetch(`${API}/api/toppings`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+            if (!r.ok) {
+                const text = await r.text().catch(() => "")
+                throw new Error(text || `Failed to add topping (${r.status})`)
+            }
+            setForm({ name: "", type: "other", price: "", isPremium: false, isAvailable: true })
+            await load()
         } catch (e) {
-            setError(e.message || "Failed to add topping");
+            setError(String(e.message || "Failed to add topping"))
         } finally {
-            setBusy(false);
+            setBusy(false)
         }
     }
 
     async function setAvailable(id, isAvailable) {
-        setBusy(true);
-        setError("");
+        setBusy(true)
+        setError("")
         try {
-            const r = await fetch(`${API}/api/toppings/${id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ isAvailable })
-            });
-
-            const data = await r.json().catch(() => ({}));
-            if (!r.ok) throw new Error(data?.message || "Failed to update topping");
-            await load();
+            const r = await fetch(`${API}/api/toppings/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ isAvailable }) })
+            if (!r.ok) {
+                const text = await r.text().catch(() => "")
+                throw new Error(text || `Failed to update topping (${r.status})`)
+            }
+            await load()
         } catch (e) {
-            setError(e.message || "Failed to update topping");
+            setError(String(e.message || "Failed to update topping"))
         } finally {
-            setBusy(false);
+            setBusy(false)
         }
     }
 
-    async function deleteOne(id, name) {
-        if (!confirm(`Are you sure you want to delete, ${name}?`)) return;
-
-        setBusy(true);
-        setError("");
+    async function deleteOne(id) {
+        setBusy(true); setError("")
         try {
-            const r = await fetch(`${API}/api/toppings/${id}`, { method: "DELETE" });
-            const data = await r.json().catch(() => ({}));
-            if (!r.ok) throw new Error(data?.message || "Failed to delete topping");
-            await load();
+            const r = await fetch(`${API}/api/toppings/${id}`, { method: "DELETE" })
+            const text = await r.text().catch(() => "")
+            if (!r.ok) throw new Error(text || `Failed to delete (${r.status})`)
+            setToppings(prev => prev.filter(t => t._id !== id))
         } catch (e) {
-            setError(e.message || "Failed to delete topping");
+            setError(String(e.message || "Failed to delete topping"))
         } finally {
-            setBusy(false);
+            setBusy(false)
         }
     }
+
 
     return (
         <div className="toppings-admin">
@@ -125,7 +111,6 @@ export default function ToppingsPage() {
             <div className="toppings-grid">
                 <section className="panel">
                     <h2>Add topping</h2>
-
                     <form onSubmit={addTopping} className="form">
                         <div className="row">
                             <label>Name</label>
@@ -147,31 +132,18 @@ export default function ToppingsPage() {
                             <label>Price</label>
                             <div className="money">
                                 <span className="prefix">$</span>
-                                <input
-                                    name="price"
-                                    type="text"
-                                    inputMode="decimal"
-                                    placeholder="0.00"
-                                    value={form.price}
-                                    onChange={onPriceChange}
-                                />
+                                <input name="price" type="text" inputMode="decimal" placeholder="0.00" value={form.price} onChange={onPriceChange} />
                             </div>
                         </div>
+
                         <div className="row premium-row">
                             <label className="premium-toggle">
-                                <input
-                                    type="checkbox"
-                                    checked={form.isPremium}
-                                    onChange={e => setForm(p => ({ ...p, isPremium: e.target.checked }))}
-                                />
+                                <input type="checkbox" checked={form.isPremium} onChange={e => setForm(p => ({ ...p, isPremium: e.target.checked }))} />
                                 <span className="premium-label">Premium topping</span>
                             </label>
                         </div>
 
-                        <button type="submit" className="btn" disabled={busy}>
-                            Add topping
-                        </button>
-
+                        <button type="submit" className="btn" disabled={busy}>Add topping</button>
                     </form>
                 </section>
 
@@ -193,43 +165,32 @@ export default function ToppingsPage() {
                                         {t.isAvailable === false && <span className="pill">disabled</span>}
                                     </div>
                                 </div>
+
                                 <div className="actions">
                                     {t.isAvailable === false ? (
-                                        <button
-                                            type="button"
-                                            className="btn"
-                                            disabled={busy}
-                                            onClick={() => setAvailable(t._id, true)}
-                                        >
-                                            Enable
-                                        </button>
+                                        <button type="button" className="btn" disabled={busy} onClick={() => setAvailable(t._id, true)}>Enable</button>
                                     ) : (
-                                        <button
-                                            type="button"
-                                            className="btn danger"
-                                            disabled={busy}
-                                            onClick={() => setAvailable(t._id, false)}
-                                        >
-                                            Disable
-                                        </button>
+                                        <button type="button" className="btn danger" disabled={busy} onClick={() => setAvailable(t._id, false)}>Disable</button>
                                     )}
-
-                                    <button
-                                        type="button"
-                                        className="btn delete"
-                                        disabled={busy}
-                                        onClick={() => deleteOne(t._id, t.name)}
-                                    >
-                                        Delete
-                                    </button>
+                                    <button type="button" className="btn delete" disabled={busy} onClick={() => setConfirmDelete(t._id)}>Delete</button>
                                 </div>
 
+                                {confirmDelete === t._id && (
+                                    <div className="confirm-pop">
+                                        <p>Delete "{t.name}"?</p>
+                                        <div className="confirm-actions">
+                                            <button className="btn delete" disabled={busy} onClick={async () => { try { await deleteOne(t._id) } finally { setConfirmDelete(null) } }}>Delete</button>
+                                            <button className="btn" disabled={busy} onClick={() => setConfirmDelete(null)}>Cancel</button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         ))}
+
                         {toppings.length === 0 && <div className="muted">No toppings yet.</div>}
                     </div>
                 </section>
             </div>
         </div>
-    );
+    )
 }

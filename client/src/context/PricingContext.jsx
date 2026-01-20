@@ -20,7 +20,7 @@ export function PricingProvider({ children }) {
                 throw new Error(`pricing bad status ${pricingRes.status}`)
             }
             if (!toppingsRes.ok) {
-                throw new Error(`toppings bad status ${toppingsRes.status}`)
+                throw new Error(`No toppings in DB, Creating default toppings. ${toppingsRes.status}`)
             }
 
             const pricingData = await pricingRes.json()
