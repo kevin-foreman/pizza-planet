@@ -37,18 +37,24 @@ router.post('/', async (req, res) => {
         return res.status(500).json({ message: 'Failed to create order' })
     }
 })
-
-router.get('/', async (req, res) => {
+/*GET /api/orders?status=pending */
+router.get("/", async (req, res) => {
     try {
         const { status } = req.query
         const q = {}
         if (status) q.status = status
-        const orders = await Order.find(q).sort({ createdAt: -1 }).limit(50)
-        return res.json(orders)
+
+        const orders = await Order.find(q)
+            .populate("items.config.toppings", "name price")
+            .sort({ createdAt: -1 })
+            .limit(50)
+
+        res.json(orders)
     } catch (err) {
-        return res.status(500).json({ message: 'Failed to fetch orders' })
+        res.status(500).json({ message: "Failed to fetch orders" })
     }
 })
+
 
 router.patch('/:id/status', async (req, res) => {
     try {

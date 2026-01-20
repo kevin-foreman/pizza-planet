@@ -7,6 +7,7 @@ import pizzaRoutes from "./routes/pizzaRoutes.js"
 import toppingRoutes from "./routes/toppingRoutes.js"
 import checkoutRoutes from "./routes/checkoutRoutes.js"
 import adminUsers from "./routes/adminUsersRoutes.js"
+import orderRoutes from "./routes/orderRoutes.js"
 
 import Pizza from "./models/Pizza.js"
 import Topping from "./models/Topping.js"
@@ -19,11 +20,9 @@ import { errorHandler } from "./middleware/errorHandler.js"
 
 const app = express()
 
+app.use(cors({ origin: ["http://localhost:5173", "http://localhost:4000"] }))
 app.use(express.json())
 app.use(morgan("dev"))
-
-app.use(cors({ origin: ["http://localhost:5173", "http://localhost:4000"] }))
-
 
 app.use("/api", (req, res, next) => {
   res.set("Cache-Control", "no-store")
@@ -69,11 +68,25 @@ app.get("/api/pricing", async (req, res) => {
       { key: "singleton" },
       {
         $setOnInsert: {
-          key: "singleton", basePrice: 10.99, taxRate: 0.082,
-          sizes: [{ id: "sm", label: "Small", mult: 1 }, { id: "md", label: "Medium", mult: 1.25 }, { id: "lg", label: "Large", mult: 1.5 }],
-          crusts: [{ id: "thin", label: "Thin" }, { id: "hand", label: "Hand Tossed" }, { id: "pan", label: "Pan" }],
-          sauces: [{ id: "red", label: "Tomato" }, { id: "white", label: "White Sauce" }, { id: "bbq", label: "BBQ" }]
-        }
+          key: "singleton",
+          basePrice: 10.99,
+          taxRate: 0.082,
+          sizes: [
+            { id: "sm", label: "Small", mult: 1 },
+            { id: "md", label: "Medium", mult: 1.25 },
+            { id: "lg", label: "Large", mult: 1.5 },
+          ],
+          crusts: [
+            { id: "thin", label: "Thin" },
+            { id: "hand", label: "Hand Tossed" },
+            { id: "pan", label: "Pan" },
+          ],
+          sauces: [
+            { id: "red", label: "Tomato" },
+            { id: "white", label: "White Sauce" },
+            { id: "bbq", label: "BBQ" },
+          ],
+        },
       },
       { new: true, upsert: true }
     ).lean()
@@ -83,8 +96,6 @@ app.get("/api/pricing", async (req, res) => {
     res.status(500).send(e?.message || String(e))
   }
 })
-
-
 
 app.put("/api/pricing", async (req, res) => {
   try {
@@ -99,7 +110,7 @@ app.put("/api/pricing", async (req, res) => {
           sauces: payload.sauces,
           toppings: payload.toppings,
           taxRate: payload.taxRate || 0,
-        }
+        },
       },
       { new: true, upsert: true }
     ).lean()
@@ -110,11 +121,12 @@ app.put("/api/pricing", async (req, res) => {
   }
 })
 
-app.use("/api", adminUsers)
+app.use("/api/auth", authRoutes)
 app.use("/api/pizzas", pizzaRoutes)
 app.use("/api/toppings", toppingRoutes)
-app.use("/api/auth", authRoutes)
-app.use("/api", checkoutRoutes)
+app.use("/api/orders", orderRoutes)
+app.use("/api/checkout", checkoutRoutes)
+app.use("/api", adminUsers)
 
 app.use(notFoundHandler)
 app.use(errorHandler)

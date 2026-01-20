@@ -1,9 +1,10 @@
 import express from "express"
 import Order from "../models/Order.js"
+import Pricing from "../models/Pricing.js"
 
 const router = express.Router()
 
-router.post("/checkout", async (req, res) => {
+router.post("/", async (req, res) => {
     try {
         const { customer, order } = req.body || {}
 
@@ -13,33 +14,34 @@ router.post("/checkout", async (req, res) => {
 
         const subtotal = Number(order.subtotal || 0)
         const tip = Number(order.tip || 0)
-        const taxRate = pricing?.taxRate ?? 0
+
+        const pricing = await Pricing.findOne({ key: "singleton" }).lean()
+        const taxRate = Number(pricing?.taxRate || 0)
+
         const tax = +(subtotal * taxRate).toFixed(2)
         const total = +(subtotal + tip + tax).toFixed(2)
 
-
         const doc = await Order.create({
-            customerName: (customer?.name || 'Guest').trim(),
-            notes: (order.notes || '').trim(),
-            size: order.size || 'Medium',
-            crust: order.crust || 'Hand Tossed',
-            sauce: order.sauce || 'Tomato',
+            customerName: (customer?.name || "Guest").trim(),
+            notes: (order.notes || "").trim(),
+            size: order.size || "Medium",
+            crust: order.crust || "Hand Tossed",
+            sauce: order.sauce || "Tomato",
             items: order.items.map(i => ({
-                type: i.type || 'item',
+                type: i.type || "item",
                 name: i.name,
                 qty: Number(i.qty || 1),
                 unitPrice: Number(i.unitPrice || 0),
                 display: i.display || null,
                 config: i.config || null,
-                notes: (i.notes || '').trim(),
+                notes: (i.notes || "").trim(),
             })),
             subtotal,
             tip,
             tax,
             total,
-            status: 'pending',
+            status: "pending",
         })
-
 
         return res.status(200).json({ ok: true, orderId: String(doc._id) })
     } catch (err) {

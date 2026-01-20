@@ -9,6 +9,8 @@ export default function ToppingsPage() {
     const [error, setError] = useState("")
     const [form, setForm] = useState({ name: "", type: "other", price: "", isPremium: false, isAvailable: true })
     const [confirmDelete, setConfirmDelete] = useState(null)
+    const [confirmPrice, setConfirmPrice] = useState(null)
+    const [priceDraft, setPriceDraft] = useState("")
 
     const location = useLocation()
 
@@ -19,7 +21,7 @@ export default function ToppingsPage() {
     async function load() {
         try {
             setError("")
-            const r = await fetch(`${API}/api/toppings?ts=${Date.now()}`, {
+            const r = await fetch(`${API}/api/toppings?all=1&ts=${Date.now()}`, {
                 cache: "no-store",
                 headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" },
             })
@@ -98,8 +100,41 @@ export default function ToppingsPage() {
             setBusy(false)
         }
     }
+    function moneyDraftFrom(n) {
+        const v = Number(n)
+        if (!Number.isFinite(v)) return ""
+        return v.toFixed(2)
+    }
 
+    function onPriceDraftChange(e) {
+        let v = e.target.value
+        if (v === "") { setPriceDraft(""); return }
+        if (!/^\d*(\.\d{0,2})?$/.test(v)) return
+        const n = Number(v)
+        if (n > 1000) return
+        setPriceDraft(v)
+    }
 
+    async function setPrice(id, price) {
+        setBusy(true)
+        setError("")
+        try {
+            const r = await fetch(`${API}/api/toppings/${id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ price: Number(price) || 0 })
+            })
+            if (!r.ok) {
+                const text = await r.text().catch(() => "")
+                throw new Error(text || `Failed to update price (${r.status})`)
+            }
+            await load()
+        } catch (e) {
+            setError(String(e.message || "Failed to update price"))
+        } finally {
+            setBusy(false)
+        }
+    }
     return (
         <div className="toppings-admin">
             <div className="toppings-head">
@@ -172,14 +207,79 @@ export default function ToppingsPage() {
                                     ) : (
                                         <button type="button" className="btn danger" disabled={busy} onClick={() => setAvailable(t._id, false)}>Disable</button>
                                     )}
-                                    <button type="button" className="btn delete" disabled={busy} onClick={() => setConfirmDelete(t._id)}>Delete</button>
+
+                                    <button
+                                        type="button"
+                                        className="btn"
+                                        disabled={busy}
+                                        onClick={() => {
+                                            setConfirmDelete(null)
+                                            setConfirmPrice(t._id)
+                                            setPriceDraft(moneyDraftFrom(t.price))
+                                        }}
+                                    >
+                                        Edit price
+                                    </button>
+
+                                    <button type="button" className="btn delete" disabled={busy} onClick={() => {
+                                        setConfirmPrice(null)
+                                        setConfirmDelete(t._id)
+                                    }}>Delete</button>
                                 </div>
+
+                                {confirmPrice === t._id && (
+                                    <div className="confirm-pop">
+                                        <div className="price-edit-row">
+
+                                            {/* LEFT */}
+                                            <div className="price-edit-left">
+                                                <label className="price-label">Price</label>
+
+                                                <div className="money">
+                                                    <span className="prefix">$</span>
+                                                    <input
+                                                        type="text"
+                                                        inputMode="decimal"
+                                                        value={priceDraft}
+                                                        onChange={onPriceDraftChange}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* RIGHT */}
+                                            <div className="confirm-actions">
+                                                <button
+                                                    className="btn"
+                                                    disabled={busy}
+                                                    onClick={async () => {
+                                                        await setPrice(t._id, priceDraft)
+                                                        setConfirmPrice(null)
+                                                    }}
+                                                >
+                                                    Save
+                                                </button>
+
+                                                <button
+                                                    className="btn"
+                                                    disabled={busy}
+                                                    onClick={() => setConfirmPrice(null)}
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                )}
 
                                 {confirmDelete === t._id && (
                                     <div className="confirm-pop">
                                         <p>Delete "{t.name}"?</p>
                                         <div className="confirm-actions">
-                                            <button className="btn delete" disabled={busy} onClick={async () => { try { await deleteOne(t._id) } finally { setConfirmDelete(null) } }}>Delete</button>
+                                            <button className="btn delete" disabled={busy} onClick={async () => {
+                                                try { await deleteOne(t._id) }
+                                                finally { setConfirmDelete(null) }
+                                            }}>Delete</button>
                                             <button className="btn" disabled={busy} onClick={() => setConfirmDelete(null)}>Cancel</button>
                                         </div>
                                     </div>
@@ -190,7 +290,7 @@ export default function ToppingsPage() {
                         {toppings.length === 0 && <div className="muted">No toppings yet.</div>}
                     </div>
                 </section>
-            </div>
-        </div>
+            </div >
+        </div >
     )
 }

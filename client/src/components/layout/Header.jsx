@@ -48,8 +48,8 @@ export default function Header() {
 	return (
 		<header className="site-header">
 			<div className="header-row">
+				<div className="header-left"></div>
 				<h1 className="site-title">Pizza Planet</h1>
-
 				<div className="header-actions">
 					{itemCount > 0 && (
 						<Link to="/cart" className="cart-link" aria-label="Cart">

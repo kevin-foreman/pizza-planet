@@ -48,7 +48,7 @@ export default function AppRoutes() {
 
       <Route path="/cart" element={<CartPage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
-      <Route path="/order-confirmation" element={<div style={{ padding: 16 }}>CONFIRM ROUTE WORKS</div>} />
+      <Route path="/order-confirmation" element={<div style={{ padding: 16 }}>Thank you for your Purchase (There will be a track here soon)</div>} />
 
 
 

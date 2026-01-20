@@ -3,10 +3,13 @@ import { useCart } from '../../context/CartContext.jsx'
 
 export default function NavBar() {
 	const { items, itemCount } = useCart()
-	const hasItems = (typeof itemCount === 'number' ? itemCount : (items?.length || 0)) > 0
+	const hasItems =
+		(typeof itemCount === 'number'
+			? itemCount
+			: (items?.length || 0)) > 0
 
 	return (
-		<nav>
+		<nav className="main-nav">
 			<Link to="/">Home</Link>{" | "}
 			<Link to="/menu">Menu</Link>
 
