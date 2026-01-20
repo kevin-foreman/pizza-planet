@@ -15,14 +15,14 @@ export default function AdminDashboardPage() {
 
 				<div className="menu-card hover-box">
 					<h3>Toppings</h3>
-					<p>(Placeholder) Manage what toppings are available.</p>
+					<p>Manage what toppings are available.</p>
 					<Link to="/admin/toppings">Edit Toppings</Link>
 				</div>
 
 				<div className="menu-card hover-box">
 					<h3>Users</h3>
-					<p>(Placeholder) Admin accounts, staff accounts.</p>
-					<span style={{ opacity: 0.7 }}>Coming soon</span>
+					<p>Search for customer accounts and edit account roles.</p>
+					<Link to="/admin/users">Edit Users</Link>
 				</div>
 			</div>
 		</div>

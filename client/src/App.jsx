@@ -2,6 +2,7 @@ import React from 'react'
 import AppRoutes from './routes/AppRoutes.jsx'
 import Header from './components/layout/Header.jsx'
 import Footer from './components/layout/Footer.jsx'
+
 import { useAuth } from './context/AuthContext.jsx'
 
 function App() {

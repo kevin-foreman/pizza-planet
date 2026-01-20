@@ -10,6 +10,9 @@ import Salad from './models/Salad.js';
 import Calzone from './models/Calzone.js';
 import checkoutRoutes from './routes/checkoutRoutes.js';
 import Pricing from './models/Pricing.js'
+import adminUsers from "./routes/adminUsersRoutes.js"
+
+
 // import saladRoutes from './routes/saladRoutes.js';
 // import calzoneRoutes from './routes/calzoneRoutes.js';
 // import orderRoutes from './routes/orderRoutes.js';
@@ -124,7 +127,7 @@ app.put('/api/pricing', async (req, res) => {
 app.get("/health", (req, res) => {
   res.status(200).json({ ok: true });
 });
-
+app.use("/api", adminUsers)
 app.use('/api/pizzas', pizzaRoutes);
 app.use('/api/toppings', toppingRoutes);
 app.use("/api/auth", authRoutes);

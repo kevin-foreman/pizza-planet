@@ -10,10 +10,12 @@ import CalzoneBuilderPage from "../pages/CalzoneBuilderPage.jsx"
 import CheckoutPage from "../pages/CheckoutPage.jsx"
 import CartPage from "../pages/CartPage.jsx"
 import OrderConfirmationPage from "../pages/OrderConfirmationPage.jsx"
+/* Admin pages */
 import ToppingsPage from "../pages/admin/ToppingsPage.jsx"
-
+import AdminUsersPage from '../pages/admin/AdminUsersPage.jsx'
 import AdminDashboardPage from "../pages/admin/AdminDashboardPage.jsx"
 import AdminPricingPage from "../pages/admin/AdminPricingPage.jsx"
+
 import StaffOrdersPage from "../pages/staff/StaffOrdersPage.jsx"
 
 import RequireRole from "./RequireRole.jsx"
@@ -49,6 +51,7 @@ export default function AppRoutes() {
       <Route path="/order-confirmation" element={<div style={{ padding: 16 }}>CONFIRM ROUTE WORKS</div>} />
 
 
+
       <Route
         path="/staff/orders"
         element={
@@ -79,6 +82,14 @@ export default function AppRoutes() {
         element={
           <RequireRole role="admin">
             <ToppingsPage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <RequireRole role="admin">
+            <AdminUsersPage />
           </RequireRole>
         }
       />
