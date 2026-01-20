@@ -2,10 +2,10 @@ import Topping from '../models/Topping.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 const DEFAULT_TOPPINGS = [
   { id: 'pep', name: 'Pepperoni', type: 'meat', price: 1.25, isAvailable: true, isPremium: false },
-  { id: 'msh', name: 'Mushrooms', type: 'veg', price: 0.85, isAvailable: true, isPremium: false },
-  { id: 'olv', name: 'Olives', type: 'veg', price: 0.85, isAvailable: true, isPremium: false },
-  { id: 'on', name: 'Onions', type: 'veg', price: 0.65, isAvailable: true, isPremium: false },
-  { id: 'gp', name: 'Green Peppers', type: 'veg', price: 0.75, isAvailable: true, isPremium: false },
+  { id: 'msh', name: 'Mushrooms', type: 'veggie', price: 0.85, isAvailable: true, isPremium: false },
+  { id: 'olv', name: 'Olives', type: 'veggie', price: 0.85, isAvailable: true, isPremium: false },
+  { id: 'on', name: 'Onions', type: 'veggie', price: 0.65, isAvailable: true, isPremium: false },
+  { id: 'gp', name: 'Green Peppers', type: 'veggie', price: 0.75, isAvailable: true, isPremium: false },
   { id: 'ham', name: 'Ham', type: 'meat', price: 1.35, isAvailable: true, isPremium: true },
 ]
 
