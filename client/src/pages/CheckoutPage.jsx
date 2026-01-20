@@ -152,16 +152,29 @@ export default function CheckoutPage() {
 			<form onSubmit={onSubmit}>
 				<label style={{ display: 'block', marginBottom: '10px' }}>
 					Name on card
-					<input value={name} onChange={e => setName(e.target.value)} />
-				</label>
+					<input
+						placeholder="Name on card"
+						value={name}
+						onChange={e => {
+							let v = e.target.value
+							// allow letters, space, apostrophe, hyphen, period
+							if (!/^[a-zA-Z .'-]*$/.test(v)) return
 
+							setName(v)
+						}}
+					/>
+				</label>
 				<label style={{ display: 'block', marginBottom: '10px' }}>
 					Card number
 					<input
 						inputMode="numeric"
-						placeholder="1234123412341234"
+						placeholder="1234 1234 1234 1234"
 						value={cardNumber}
-						onChange={e => setCardNumber(e.target.value)}
+						onChange={e => {
+							let d = (e.target.value || '').replace(/\D/g, '')
+							if (d.length > 19) return
+							setCardNumber(d)
+						}}
 					/>
 				</label>
 
@@ -172,17 +185,36 @@ export default function CheckoutPage() {
 							inputMode="numeric"
 							placeholder="01"
 							value={expMonth}
-							onChange={e => setExpMonth(e.target.value)}
+							onChange={e => {
+								let v = (e.target.value || '').replace(/\D/g, '')
+								if (v.length > 2) return
+
+								// prevent 00 and >12 once 2 digits exist
+								if (v.length === 2) {
+									const n = Number(v)
+									if (n < 1 || n > 12) return
+								}
+
+								setExpMonth(v)
+							}}
 						/>
 					</label>
-
 					<label style={{ flex: 1 }}>
 						YY or YYYY
 						<input
 							inputMode="numeric"
 							placeholder="27"
 							value={expYear}
-							onChange={e => setExpYear(e.target.value)}
+							onChange={e => {
+								let v = (e.target.value || '').replace(/\D/g, '')
+								if (v.length > 4) return
+								// If 4-digit year, enforce >= 2026
+								if (v.length === 4) {
+									const y = Number(v)
+									if (y < 2026) return
+								}
+								setExpYear(v)
+							}}
 						/>
 					</label>
 				</div>
@@ -194,17 +226,25 @@ export default function CheckoutPage() {
 							inputMode="numeric"
 							placeholder="123"
 							value={cvc}
-							onChange={e => setCvc(e.target.value)}
+							onChange={e => {
+								let v = (e.target.value || '').replace(/\D/g, '')
+								if (v.length > 4) return
+								setCvc(v)
+							}}
 						/>
 					</label>
-
 					<label style={{ flex: 1 }}>
 						ZIP
 						<input
 							inputMode="numeric"
-							placeholder="809xx"
+							placeholder="12345 or 12345-6789"
 							value={zip}
-							onChange={e => setZip(e.target.value)}
+							onChange={e => {
+								let d = (e.target.value || '').replace(/\D/g, '')
+								if (d.length > 9) d = d.slice(0, 9)
+								let v = d.length <= 5 ? d : (d.slice(0, 5) + '-' + d.slice(5))
+								setZip(v)
+							}}
 						/>
 					</label>
 				</div>
