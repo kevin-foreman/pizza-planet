@@ -964,10 +964,17 @@ section {
 }
 
 /* Center toppings page header */
-.toppings-admin .toppings-head {
+.users-admin .toppings-head {
 	align-items: center;
 	display: flex;
 	flex-direction: column;
+	text-align: center;
+}
+
+.users-admin .users-head {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 	text-align: center;
 }
 
@@ -980,4 +987,161 @@ section {
 	flex-wrap: wrap;
 	margin-top: 6px;
 	/* space below title */
+}
+
+/* Role pills */
+.pill.role-customer {
+	background: rgba(120, 255, 170, 0.12);
+	border-color: rgba(120, 255, 170, 0.45);
+	color: #7dffb3;
+}
+
+.pill.role-staff {
+	background: rgba(100, 150, 255, 0.12);
+	border-color: rgba(100, 150, 255, 0.45);
+	color: #8fb2ff;
+}
+
+.pill.role-admin {
+	background: rgba(255, 215, 0, 0.12);
+	border-color: rgba(255, 215, 0, 0.45);
+	color: #ffd966;
+	font-weight: 700;
+}
+
+/* Users page layout */
+.users-admin .meta {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+	margin: 16px 0 24px;
+}
+
+.users-admin .meta input {
+	max-width: 420px;
+	width: 100%;
+}
+
+/* Users page cards */
+.users-admin .card {
+	background: rgba(0, 0, 0, 0.22);
+	border: 1px solid rgba(255, 255, 255, 0.10);
+	border-radius: 12px;
+}
+
+.users-admin .user-info .title {
+	color: #ffffff;
+	font-weight: 700;
+}
+
+.users-admin .user-info .username {
+	color: #e0e0e0;
+	opacity: 0.9;
+}
+
+.users-admin .user-info .title strong,
+.users-admin .user-info .username strong {
+	color: #bdbdbd;
+	font-weight: 600;
+}
+
+.users-admin .user-pills .pill {
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.14);
+	color: #eaeaea;
+	font-weight: 700;
+}
+
+.users-admin .pill.role-customer {
+	background: rgba(120, 255, 170, 0.12);
+	border-color: rgba(120, 255, 170, 0.45);
+	color: #7dffb3;
+}
+
+.users-admin .pill.role-staff {
+	background: rgba(100, 150, 255, 0.12);
+	border-color: rgba(100, 150, 255, 0.45);
+	color: #8fb2ff;
+}
+
+.users-admin .pill.role-admin {
+	background: rgba(255, 215, 0, 0.12);
+	border-color: rgba(255, 215, 0, 0.45);
+	color: #ffd966;
+}
+
+.users-admin .pill:not([class*="role-"]) {
+	font-weight: 600;
+	opacity: .85;
+}
+
+/* Keep right-side controls tight like your screenshot */
+.users-admin .user-actions select {
+	width: auto;
+	min-width: 120px;
+	padding: 10px 12px;
+}
+
+.users-admin .user-actions .btn.delete {
+	padding: 10px 14px;
+	border-radius: 10px;
+}
+
+.users-admin .user-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+.users-admin .user-info {
+	flex: 1;
+	min-width: 0;
+}
+
+.users-admin .user-actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 12px;
+	flex: 0 0 auto;
+}
+
+.users-admin .user-actions select {
+	width: auto;
+	min-width: 140px;
+}
+
+@media(max-width:700px) {
+	.users-admin .user-row {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.users-admin .user-actions {
+		justify-content: space-between;
+	}
+}
+
+.users-admin .btn.delete {
+	background: #e74c3c;
+	border: 1px solid #c0392b;
+	color: #fff;
+}
+
+.users-admin .btn.delete:hover {
+	background: #ff5a4a;
+}
+
+.users-admin .card {
+	padding: 12px;
+}
+
+.users-admin .user-info {
+	gap: 6px;
+}
+
+.users-admin .user-actions {
+	gap: 10px;
 }
