@@ -10,14 +10,19 @@ import CalzoneBuilderPage from "../pages/CalzoneBuilderPage.jsx"
 import CheckoutPage from "../pages/CheckoutPage.jsx"
 import CartPage from "../pages/CartPage.jsx"
 import OrderConfirmationPage from "../pages/OrderConfirmationPage.jsx"
+
+/* Staff pages */
+import StaffHomePage from '../pages/staff/StaffHomePage.jsx'
+import StaffClockPage from '../pages/staff/StaffClockPage.jsx'
+import StaffOrdersPage from "../pages/staff/StaffOrdersPage.jsx"
+
 /* Admin pages */
 import ToppingsPage from "../pages/admin/ToppingsPage.jsx"
 import AdminUsersPage from '../pages/admin/AdminUsersPage.jsx'
 import AdminDashboardPage from "../pages/admin/AdminDashboardPage.jsx"
 import AdminPricingPage from "../pages/admin/AdminPricingPage.jsx"
 
-import StaffOrdersPage from "../pages/staff/StaffOrdersPage.jsx"
-
+/* protected route */
 import RequireRole from "./RequireRole.jsx"
 
 function NotFound() {
@@ -51,16 +56,32 @@ export default function AppRoutes() {
       <Route path="/order-confirmation" element={<div style={{ padding: 16 }}>Thank you for your Purchase (There will be a track here soon)</div>} />
 
 
-
+      {/*protected role routes */}
       <Route
-        path="/staff/orders"
+        path="/staff"
         element={
-          <RequireRole role="staff">
-            <StaffOrdersPage />
+          <RequireRole roles={["staff", "admin"]}>
+            <StaffHomePage />
           </RequireRole>
         }
       />
 
+      <Route
+        path="/staff/clock"
+        element={
+          <RequireRole roles={["staff", "admin"]}>
+            <StaffClockPage />
+          </RequireRole>
+        }
+      />
+      <Route
+        path="/staff/orders"
+        element={
+          <RequireRole roles={["staff", "admin"]}>
+            <StaffOrdersPage />
+          </RequireRole>
+        }
+      />
       <Route
         path="/admin"
         element={

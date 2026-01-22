@@ -6,7 +6,8 @@ import { usePricing } from "../context/PricingContext.jsx"
 export default function PizzaBuilderPage() {
 	const { addItem } = useCart()
 	const { pricing, toppings, error, refreshPricing } = usePricing()
-
+	const { items } = useCart()
+	const itemCount = useMemo(() => items?.reduce((a, i) => a + (i.qty || 1), 0) || 0, [items])
 	const navigate = useNavigate()
 	const location = useLocation()
 
@@ -93,10 +94,9 @@ export default function PizzaBuilderPage() {
 	}
 
 	return (
-		<div style={{ padding: '16px' }}>
-			<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+		<div style={{ padding: '0px' }}>
+			<div className="hero">
 				<h1>Build Your Pizza</h1>
-				<div style={{ display: 'flex', gap: '10px' }}></div>
 			</div>
 
 			{error ? (
@@ -174,7 +174,7 @@ export default function PizzaBuilderPage() {
 						/>
 					</div>
 
-					<button onClick={reset}>Reset</button>
+					<button className="btn-reset" onClick={reset}>Reset</button>
 				</section>
 
 				<section className="preview-panel">
@@ -220,7 +220,11 @@ export default function PizzaBuilderPage() {
 						<p className="modal-text">Order more, or go to your cart?</p>
 						<div className="modal-actions">
 							<button onClick={() => { setShowAddModal(false); reset() }}>Order More</button>
-							<button onClick={() => navigate('/cart')}>Go To Cart</button>
+							<button className="btn-go-cart" onClick={() => navigate('/cart')}>
+								<span className="cart-badge">({itemCount})</span>
+								<span className="cart-emoji">🛒</span>
+								Go To Cart
+							</button>
 						</div>
 					</div>
 				</div>

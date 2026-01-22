@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext.jsx"
 
 function routeForRole(role) {
   if (role === "admin") return "/admin"
-  if (role === "staff") return "/staff/orders"
+  if (role === "staff") return "/staff"
   return "/"
 }
 
@@ -30,7 +30,7 @@ function passwordOk(pw) {
 }
 
 function isValidDisplayName(name) {
-  const s = String(name || '').trim()
+  const s = String(name || "").trim()
   if (!s) return false
   if (s.length < 5 || s.length > 30) return false
   if (!/^[A-Za-z0-9 _.-]+$/.test(s)) return false
@@ -38,7 +38,7 @@ function isValidDisplayName(name) {
 }
 
 function isValidEmail(email) {
-  const s = String(email || '').trim()
+  const s = String(email || "").trim()
   if (!s) return false
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
 }
@@ -51,11 +51,11 @@ export default function LoginPage() {
   const [displayName, setDisplayName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState("")
 
   const pw = passwordCheck(password)
+
   const canSubmit = mode === "signup"
     ? true
     : email.trim() && password.length > 0
@@ -107,84 +107,80 @@ export default function LoginPage() {
     }
   }
 
+  const pwBadTip = mode === "signup" && !passwordOk(password) ? "Password does not meet requirements" : ""
 
+  const showSignIn = mode !== "login"
+  const showSignUp = mode !== "signup"
+  const isSingle = (showSignIn ? 1 : 0) + (showSignUp ? 1 : 0) === 1
   return (
-    <div style={{ maxWidth: "420px", margin: "40px auto" }}>
-      <h1 style={{ textAlign: "center" }}>
-        {mode === "signup" ? "Create Account" : "Sign In"}
-      </h1>
+    <div className="container">
+      <section className="panel auth-panel">
+        <h1 className="center-title">{mode === "signup" ? "Create Account" : "Sign In"}</h1>
 
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-        <button type="button" disabled={busy} onClick={() => setMode("login")}>
-          Sign in
-        </button>
+        <div className={`menu-toggle ${isSingle ? "single" : "split"}`}>
+          {mode !== "login" && (
+            <button
+              type="button"
+              className="menu-cta"
+              disabled={busy}
+              onClick={() => setMode("login")}
+            >
+              Sign in
+            </button>
+          )}
 
-        <button type="button" disabled={busy} onClick={() => setMode("signup")}>
-          Sign up
-        </button>
-      </div>
+          {mode !== "signup" && (
+            <button
+              type="button"
+              className="menu-cta"
+              disabled={busy}
+              onClick={() => setMode("signup")}
+            >
+              Create A new account
+            </button>
+          )}
+        </div>
 
-      <form onSubmit={onSubmit} noValidate style={{ display: "grid", gap: 12 }}>
 
-        {mode === "signup" && (
+
+        <form className="auth-form" onSubmit={onSubmit} noValidate>
+          {mode === "signup" && (
+            <label>
+              Display name
+              <input value={displayName} onChange={e => setDisplayName(e.target.value)} />
+            </label>
+          )}
+
           <label>
-            Display name
-            <input
-              value={displayName}
-              onChange={e => setDisplayName(e.target.value)}
-              style={{ width: "100%", marginTop: 6 }}
-            />
+            Email
+            <input type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} required />
           </label>
-        )}
 
-        <label>
-          Email
-          <input
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-            style={{ width: "100%", marginTop: 6 }}
-          />
-        </label>
+          <label>
+            Password
+            <input type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} value={password} onChange={e => setPassword(e.target.value)} required />
+          </label>
 
-        <label>
-          Password
-          <input
-            type="password"
-            autoComplete={mode === "signup" ? "new-password" : "current-password"}
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-            style={{ width: "100%", marginTop: 6 }}
-          />
-        </label>
+          {mode === "signup" && (
+            <div className="panel auth-pw-panel">
+              <div className="auth-pw-title">Password requirements</div>
+              <ul className="auth-pw-list">
+                <li className={pw.len ? "ok" : "no"}>At least 8 characters</li>
+                <li className={pw.upper ? "ok" : "no"}>At least 2 uppercase letters</li>
+                <li className={pw.lower ? "ok" : "no"}>At least 2 lowercase letters</li>
+                <li className={pw.num ? "ok" : "no"}>At least 2 numbers</li>
+                <li className={pw.special ? "ok" : "no"}>At least 2 special characters</li>
+              </ul>
+            </div>
+          )}
 
-        {mode === "signup" && (
-          <div className="panel" style={{ marginTop: 4 }}>
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>Password requirements</div>
-            <ul style={{ margin: 0, paddingLeft: 18, opacity: .9 }}>
-              <li style={{ opacity: pw.len ? 1 : .55 }}>At least 8 characters</li>
-              <li style={{ opacity: pw.upper ? 1 : .55 }}>At least 2 uppercase letters</li>
-              <li style={{ opacity: pw.lower ? 1 : .55 }}>At least 2 lowercase letters</li>
-              <li style={{ opacity: pw.num ? 1 : .55 }}>At least 2 numbers</li>
-              <li style={{ opacity: pw.special ? 1 : .55 }}>At least 2 special characters</li>
-            </ul>
-          </div>
-        )}
+          {error ? <div className="auth-error">{error}</div> : null}
 
-        {error ? <div style={{ color: "crimson" }}>{error}</div> : null}
-
-        <button
-          type="submit"
-          disabled={busy || !canSubmit}
-          style={{ width: "100%" }}
-          title={mode === "signup" && !passwordOk(password) ? "Password does not meet requirements" : ""}
-        >
-          {busy ? "Working..." : mode === "signup" ? "Create account" : "Sign in"}
-        </button>
-      </form>
+          <button type="submit" className="auth-submit" disabled={busy || !canSubmit} title={pwBadTip}>
+            {busy ? "Working..." : mode === "signup" ? "Create account" : "Sign in"}
+          </button>
+        </form>
+      </section>
     </div>
   )
 }

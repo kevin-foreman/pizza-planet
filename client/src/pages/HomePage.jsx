@@ -15,7 +15,6 @@ export default function HomePage() {
 	return (
 		<div>
 			<section className="hero">
-				<h1>Pizza Planet</h1>
 				<p>Build your pizza, your way. Fresh. Fast. Simple.</p>
 
 				<div className="tooltip-wrapper">
@@ -33,8 +32,6 @@ export default function HomePage() {
 
 			{/* Menu Preview */}
 			<section className="menu-preview">
-				<h2 className="center-title">Menu</h2>
-
 
 				<div className="menu-cards">
 					<div className="menu-card hover-box">

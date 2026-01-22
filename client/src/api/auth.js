@@ -2,16 +2,24 @@ export async function jsonFetch(path, options = {}) {
   const token = localStorage.getItem("pp_token")
 
   const res = await fetch(path, {
+    ...options,
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers || {}),
     },
-    ...options,
   })
 
   const text = await res.text()
-  const data = text ? JSON.parse(text) : {}
+
+  let data = {}
+  if (text) {
+    try {
+      data = JSON.parse(text)
+    } catch {
+      data = { message: text }
+    }
+  }
 
   if (res.status === 401) {
     localStorage.removeItem("pp_token")
@@ -21,6 +29,7 @@ export async function jsonFetch(path, options = {}) {
   if (!res.ok) throw new Error(data?.message || `Request failed (${res.status})`)
   return data
 }
+
 
 export const authApi = {
   login: (payload) =>

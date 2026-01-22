@@ -1,33 +1,30 @@
-import jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken"
+import User from "../models/User.js"
 
-export function requireAuth(req, res, next) {
-  const header = req.headers.authorization;
-
-  if (!header || !header.startsWith("Bearer ")) {
-    const err = new Error("Not authorized: missing Bearer token");
-    err.statusCode = 401;
-    return next(err);
-  }
-
-  const token = header.split(" ")[1];
-  const secret = process.env.JWT_SECRET;
-
-  if (!secret) {
-    const err = new Error("Server misconfiguration: JWT_SECRET is not set");
-    err.statusCode = 500;
-    return next(err);
-  }
-
+export async function requireAuth(req, res, next) {
   try {
-    const payload = jwt.verify(token, secret);
-    req.user = payload; // { id, email, roles, ... } depending on what you sign
-    return next();
-  } catch {
-    const err = new Error("Not authorized: token invalid or expired");
-    err.statusCode = 401;
-    return next(err);
+    const header = req.headers.authorization || ""
+    const token = header.startsWith("Bearer ") ? header.slice(7) : ""
+    if (!token) return res.status(401).json({ message: "Not authorized: missing Bearer token" })
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+
+    const user = await User.findById(decoded.id).select("_id email role displayName")
+    if (!user) return res.status(401).json({ message: "Not authorized" })
+
+    req.user = {
+      id: String(user._id),
+      email: user.email,
+      role: user.role,
+      displayName: user.displayName,
+    }
+
+    next()
+  } catch (e) {
+    return res.status(401).json({ message: "Not authorized" })
   }
 }
+
 
 export function requireRole(...allowedRoles) {
   return (req, res, next) => {

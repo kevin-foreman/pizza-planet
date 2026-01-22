@@ -8,6 +8,7 @@ import toppingRoutes from "./routes/toppingRoutes.js"
 import checkoutRoutes from "./routes/checkoutRoutes.js"
 import adminUsers from "./routes/adminUsersRoutes.js"
 import orderRoutes from "./routes/orderRoutes.js"
+import shiftsRoutes from './routes/shiftsRoutes.js'
 
 import Pizza from "./models/Pizza.js"
 import Topping from "./models/Topping.js"
@@ -120,13 +121,14 @@ app.put("/api/pricing", async (req, res) => {
     res.status(500).send(e?.message || String(e))
   }
 })
-
+app.use("/api", adminUsers)
 app.use("/api/auth", authRoutes)
 app.use("/api/pizzas", pizzaRoutes)
 app.use("/api/toppings", toppingRoutes)
-app.use("/api/orders", orderRoutes)
+
 app.use("/api/checkout", checkoutRoutes)
-app.use("/api", adminUsers)
+app.use('/api/shifts', shiftsRoutes)
+app.use("/api/staff/orders", orderRoutes)
 
 app.use(notFoundHandler)
 app.use(errorHandler)

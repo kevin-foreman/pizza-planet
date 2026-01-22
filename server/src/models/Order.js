@@ -12,7 +12,6 @@ const orderItemSchema = new Schema({
     notes: { type: String, default: '' },
 }, { _id: false })
 
-
 const orderSchema = new Schema({
     customerName: { type: String, default: 'Guest' },
     notes: { type: String, default: '' },
@@ -33,7 +32,31 @@ const orderSchema = new Schema({
         enum: ['pending', 'in_progress', 'completed', 'cancelled'],
         default: 'pending'
     },
-}, { timestamps: true })
 
+    /* ARCHIVE FILES */
+    archived: {
+        type: Boolean,
+        default: false,
+        index: true
+    },
+    archivedAt: {
+        type: Date,
+        default: null
+    },
+    archivedBy: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    },
+    /* KITCHEN FILES */
+    kitchen: {
+        startedAt: { type: Date, default: null },
+        startedBy: { type: Schema.Types.ObjectId, ref: 'User', default: null },
+        restartCount: { type: Number, default: 0 },
+        toppingIndex: { type: Number, default: 0 },
+        toppingDone: { type: [Boolean], default: [] }
+    }
+
+}, { timestamps: true })
 
 export default model('Order', orderSchema)

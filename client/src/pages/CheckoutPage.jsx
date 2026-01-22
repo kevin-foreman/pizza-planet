@@ -141,128 +141,190 @@ export default function CheckoutPage() {
 
 
 	return (
-		<div style={{ padding: '16px', maxWidth: '520px', margin: '0 auto' }}>
-			<h1>Checkout</h1>
+		<div className="page checkout-page">
+			<div className="checkout-grid">
+				<aside className="panel checkout-">
+					<h2>Cart</h2>
 
-			<div style={{ marginBottom: '12px' }}>
-				<div>Items:{itemCount}</div>
-				<div>Total: ${Number(subtotal || 0).toFixed(2)}</div>
-			</div>
+					{items.length === 0 ? (
+						<div style={{ opacity: .85 }}>Your cart is empty.</div>
+					) : (
+						<div className="order-list">
+							{items.map(i => (
+								<div key={i.id} className="order-card hover-box">
+									<div className="order-top">
+										<div>
+											<div className="order-id">{i.name || "Item"}</div>
 
-			<form onSubmit={onSubmit}>
-				<label style={{ display: 'block', marginBottom: '10px' }}>
-					Name on card
-					<input
-						placeholder="Name on card"
-						value={name}
-						onChange={e => {
-							let v = e.target.value
-							// allow letters, space, apostrophe, hyphen, period
-							if (!/^[a-zA-Z .'-]*$/.test(v)) return
+											<div className="order-meta">
+												<span className="pill pill-RECEIVED">{(i.type || "item").toUpperCase()}</span>
+												{i.display?.size ? (<><span className="dot">•</span><span>{i.display.size}</span></>) : null}
+												{i.display?.crust ? (<><span className="dot">•</span><span>{i.display.crust}</span></>) : null}
+												{i.display?.sauce ? (<><span className="dot">•</span><span>{i.display.sauce}</span></>) : null}
+											</div>
+										</div>
 
-							setName(v)
-						}}
-					/>
-				</label>
-				<label style={{ display: 'block', marginBottom: '10px' }}>
-					Card number
-					<input
-						inputMode="numeric"
-						placeholder="1234 1234 1234 1234"
-						value={cardNumber}
-						onChange={e => {
-							let d = (e.target.value || '').replace(/\D/g, '')
-							if (d.length > 19) return
-							setCardNumber(d)
-						}}
-					/>
-				</label>
+										<div className="order-total">${Number(i.unitPrice || 0).toFixed(2)}</div>
+									</div>
 
-				<div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-					<label style={{ flex: 1 }}>
-						MM
-						<input
-							inputMode="numeric"
-							placeholder="01"
-							value={expMonth}
-							onChange={e => {
-								let v = (e.target.value || '').replace(/\D/g, '')
-								if (v.length > 2) return
+									{i.display?.toppings && i.display.toppings.length > 0 ? (
+										<div style={{ marginTop: "10px", opacity: .9 }}>
+											<b>Toppings:</b> {i.display.toppings.join(", ")}
+										</div>
+									) : null}
 
-								// prevent 00 and >12 once 2 digits exist
-								if (v.length === 2) {
-									const n = Number(v)
-									if (n < 1 || n > 12) return
-								}
+									{i.notes ? (
+										<div className="order-notes">
+											<b>Notes:</b> {i.notes}
+										</div>
+									) : null}
 
-								setExpMonth(v)
-							}}
-						/>
-					</label>
-					<label style={{ flex: 1 }}>
-						YY or YYYY
-						<input
-							inputMode="numeric"
-							placeholder="27"
-							value={expYear}
-							onChange={e => {
-								let v = (e.target.value || '').replace(/\D/g, '')
-								if (v.length > 4) return
-								// If 4-digit year, enforce >= 2026
-								if (v.length === 4) {
-									const y = Number(v)
-									if (y < 2026) return
-								}
-								setExpYear(v)
-							}}
-						/>
-					</label>
-				</div>
+									<div style={{ marginTop: "10px", opacity: .85 }}>
+										Qty: <b>{i.qty || 1}</b>
+									</div>
+								</div>
+							))}
+						</div>
+					)}
 
-				<div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-					<label style={{ flex: 1 }}>
-						CVC
-						<input
-							inputMode="numeric"
-							placeholder="123"
-							value={cvc}
-							onChange={e => {
-								let v = (e.target.value || '').replace(/\D/g, '')
-								if (v.length > 4) return
-								setCvc(v)
-							}}
-						/>
-					</label>
-					<label style={{ flex: 1 }}>
-						ZIP
-						<input
-							inputMode="numeric"
-							placeholder="12345 or 12345-6789"
-							value={zip}
-							onChange={e => {
-								let d = (e.target.value || '').replace(/\D/g, '')
-								if (d.length > 9) d = d.slice(0, 9)
-								let v = d.length <= 5 ? d : (d.slice(0, 5) + '-' + d.slice(5))
-								setZip(v)
-							}}
-						/>
-					</label>
-				</div>
+					<hr style={{ margin: "12px 0" }} />
 
-				{err ? (
-					<div style={{ marginBottom: '10px', padding: '10px', border: '1px solid #c33', borderRadius: '10px' }}>
-						{err}
+					<div style={{ display: "flex", justifyContent: "space-between" }}>
+						<span>Subtotal</span>
+						<span>${Number(subtotal || 0).toFixed(2)}</span>
 					</div>
-				) : null}
 
-				<button disabled={busy} type="submit" style={{ width: '100%' }}>
-					{busy ? 'Processing...' : 'Place Order'}
-				</button>
+					<div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px" }}>
+						<span>Tip</span>
+						<span>${Number(tipAmount || 0).toFixed(2)}</span>
+					</div>
 
-				<div style={{ marginTop: '10px', fontSize: '12px', opacity: 0.8 }}>
-					This is a demo checkout. Do not use real card details.
-				</div>
-			</form>
+					<div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px", fontWeight: 800, fontSize: "18px" }}>
+						<span>Total</span>
+						<span>${Number(total || subtotal || 0).toFixed(2)}</span>
+					</div>
+				</aside>
+
+				<section className="panel checkout-pay">
+					<h2>Payment</h2>
+
+					<form onSubmit={onSubmit}>
+						<div className="checkout-details">
+							Name on card
+							<input
+								placeholder="Name on card"
+								value={name}
+								onChange={e => {
+									let v = e.target.value
+									if (!/^[a-zA-Z .'-]*$/.test(v)) return
+									setName(v)
+								}}
+							/>
+						</div>
+
+						<div className="checkout-details">
+							Card number
+							<input
+								inputMode="numeric"
+								placeholder="1234 1234 1234 1234"
+								value={cardNumber}
+								onChange={e => {
+									let d = (e.target.value || "").replace(/\D/g, "")
+									if (d.length > 19) return
+									setCardNumber(d)
+								}}
+							/>
+						</div>
+
+						<div className="checkout-details">
+							<div className="checkout-row">
+								<div className="checkout-field">
+									<div className="checkout-label">MM</div>
+									<input
+										inputMode="numeric"
+										placeholder="01"
+										value={expMonth}
+										onChange={e => {
+											let v = (e.target.value || "").replace(/\D/g, "")
+											if (v.length > 2) return
+											if (v.length === 2) {
+												const n = Number(v)
+												if (n < 1 || n > 12) return
+											}
+											setExpMonth(v)
+										}}
+									/>
+								</div>
+
+								<div className="checkout-field">
+									<div className="checkout-label">YY or YYYY</div>
+									<input
+										inputMode="numeric"
+										placeholder="27"
+										value={expYear}
+										onChange={e => {
+											let v = (e.target.value || "").replace(/\D/g, "")
+											if (v.length > 4) return
+											if (v.length === 4) {
+												const y = Number(v)
+												if (y < 2026) return
+											}
+											setExpYear(v)
+										}}
+									/>
+								</div>
+							</div>
+						</div>
+
+						<div className="checkout-details">
+							<div className="checkout-row">
+								<div className="checkout-field">
+									<div className="checkout-label">CVC</div>
+									<input
+										inputMode="numeric"
+										placeholder="123"
+										value={cvc}
+										onChange={e => {
+											let v = (e.target.value || "").replace(/\D/g, "")
+											if (v.length > 4) return
+											setCvc(v)
+										}}
+									/>
+								</div>
+
+								<div className="checkout-field">
+									<div className="checkout-label">ZIP</div>
+									<input
+										inputMode="numeric"
+										placeholder="12345 or 12345-6789"
+										value={zip}
+										onChange={e => {
+											let d = (e.target.value || "").replace(/\D/g, "")
+											if (d.length > 9) d = d.slice(0, 9)
+											let v = d.length <= 5 ? d : (d.slice(0, 5) + "-" + d.slice(5))
+											setZip(v)
+										}}
+									/>
+								</div>
+							</div>
+						</div>
+
+						{err ? (
+							<div style={{ marginBottom: "10px", padding: "10px", border: "1px solid #c33", borderRadius: "10px" }}>
+								{err}
+							</div>
+						) : null}
+
+						<button type="submit" disabled={busy} className="btn btn-primary">
+							{busy ? "Processing..." : "Place Order"}
+						</button>
+
+						<div className="checkout-demo">
+							This is a demo checkout. Do not use real card details.
+						</div>
+					</form>
+				</section>
+			</div>
 		</div>
 	)
 }
