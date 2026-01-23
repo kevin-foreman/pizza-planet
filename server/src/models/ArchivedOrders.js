@@ -12,22 +12,8 @@ const orderItemSchema = new Schema({
     notes: { type: String, default: "" },
 }, { _id: false })
 
-const kitchenItemSchema = new Schema({
-    startedAt: { type: Date, default: null },
-    startedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
-    restartCount: { type: Number, default: 0 },
-    toppingIndex: { type: Number, default: 0 },
-    toppingDone: { type: [Boolean], default: [] },
-    lastBackAtIndex: { type: Number, default: -1 },
-    ovenConfirmedAt: { type: Date, default: null },
-    cookedConfirmedAt: { type: Date, default: null },
-    doneAt: { type: Date, default: null },
-    canceledAt: { type: Date, default: null },
-    canceledBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
-}, { _id: false })
-
-
-const orderSchema = new Schema({
+const archivedOrderSchema = new Schema({
+    // copy of Order fields
     customerName: { type: String, default: "Guest" },
     notes: { type: String, default: "" },
 
@@ -44,18 +30,27 @@ const orderSchema = new Schema({
 
     status: {
         type: String,
-        enum: ["RECEIVED", "IN_PROGRESS", "COMPLETED", "CANCELED"],
-        default: "RECEIVED"
+        enum: ["pending", "in_progress", "completed", "canceled"],
+        default: "pending"
     },
 
-    archived: { type: Boolean, default: false, index: true },
+    // archive metadata
     archivedAt: { type: Date, default: null },
     archivedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
 
+    // keep kitchen if you want history
     kitchen: {
-        items: { type: [kitchenItemSchema], default: [] },
+        startedAt: { type: Date, default: null },
+        startedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+        restartCount: { type: Number, default: 0 },
+        toppingIndex: { type: Number, default: 0 },
+        toppingDone: { type: [Boolean], default: [] },
+        ovenConfirmedAt: { type: Date, default: null },
+        cookedConfirmedAt: { type: Date, default: null },
+        backUsed: { type: Boolean, default: false },
     },
 
+    originalOrderId: { type: String, default: "" },
 }, { timestamps: true })
 
-export default model("Order", orderSchema)
+export default model("ArchivedOrder", archivedOrderSchema, "archived_orders")

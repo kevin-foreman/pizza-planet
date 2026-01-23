@@ -15,6 +15,7 @@ import OrderConfirmationPage from "../pages/OrderConfirmationPage.jsx"
 import StaffHomePage from '../pages/staff/StaffHomePage.jsx'
 import StaffClockPage from '../pages/staff/StaffClockPage.jsx'
 import StaffOrdersPage from "../pages/staff/StaffOrdersPage.jsx"
+import ArchivedOrdersPage from "../pages/staff/ArchivedOrdersPage.jsx"
 
 /* Admin pages */
 import ToppingsPage from "../pages/admin/ToppingsPage.jsx"
@@ -55,7 +56,6 @@ export default function AppRoutes() {
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/order-confirmation" element={<div style={{ padding: 16 }}>Thank you for your Purchase (There will be a track here soon)</div>} />
 
-
       {/*protected role routes */}
       <Route
         path="/staff"
@@ -65,7 +65,14 @@ export default function AppRoutes() {
           </RequireRole>
         }
       />
-
+      <Route
+        path="/staff/archived"
+        element={
+          <RequireRole roles={["staff", "admin"]}>
+            <ArchivedOrdersPage />
+          </RequireRole>
+        }
+      />
       <Route
         path="/staff/clock"
         element={

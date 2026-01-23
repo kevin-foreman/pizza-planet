@@ -29,7 +29,7 @@ router.post("/", async (req, res) => {
             sauce: order.sauce || "Tomato",
             items: order.items.map(i => ({
                 type: i.type || "item",
-                name: i.name,
+                name: i.name || i.label || i.title || "Item",
                 qty: Number(i.qty || 1),
                 unitPrice: Number(i.unitPrice || 0),
                 display: i.display || null,
@@ -40,13 +40,13 @@ router.post("/", async (req, res) => {
             tip,
             tax,
             total,
-            status: "pending",
+            status: "RECEIVED",
         })
 
         return res.status(200).json({ ok: true, orderId: String(doc._id) })
-    } catch (err) {
-        console.error(err)
-        return res.status(500).json({ error: "Checkout failed" })
+    } catch (e) {
+        console.error("POST /api/checkout failed:", e)
+        res.status(500).json({ message: e?.message || String(e) })
     }
 })
 

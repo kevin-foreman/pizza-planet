@@ -1,5 +1,6 @@
 import express from "express"
 import Order from "../models/Order.js"
+import ArchivedOrder from "../models/ArchivedOrders.js"
 import { requireAuth } from "../middleware/authMiddleware.js"
 
 const router = express.Router()
@@ -11,13 +12,12 @@ function requireStaff(req, res, next) {
     next()
 }
 
-
 function mapStatus(s) {
-    const v = String(s || "").toLowerCase()
-    if (v === "pending") return "RECEIVED"
-    if (v === "in_progress") return "IN_PROGRESS"
-    if (v === "completed") return "READY"
-    if (v === "cancelled") return "CANCELLED"
+    const v = String(s || "").toUpperCase()
+    if (v === "RECEIVED") return "RECEIVED"
+    if (v === "IN_PROGRESS") return "IN_PROGRESS"
+    if (v === "COMPLETED") return "READY"
+    if (v === "CANCELED") return "CANCELED"
     return "RECEIVED"
 }
 
@@ -39,11 +39,12 @@ function normalizeItems(order) {
         const tops = cfg?.toppings || disp?.toppings || []
         return {
             type: String(it?.type || "Item"),
+            qty: Number(it?.qty || 1),
             size: String(disp?.size || cfg?.size || order.size || ""),
             crust: String(disp?.crust || cfg?.crust || order.crust || ""),
             sauce: String(disp?.sauce || cfg?.sauce || order.sauce || ""),
             toppings: Array.isArray(tops) ? tops.map(String) : [],
-            notes: String(it?.notes || "")
+            notes: String(it?.notes || ""),
         }
     })
 }
@@ -52,6 +53,8 @@ function normalizeOrder(o) {
     return {
         _id: String(o._id),
         number: o.number ? String(o.number) : String(o._id),
+        createdAt: o.createdAt,
+        updatedAt: o.updatedAt,
         customerName: String(o.customerName || "Guest"),
         timeLabel: isoTimeLabel(o.createdAt),
         status: mapStatus(o.status),
@@ -59,24 +62,113 @@ function normalizeOrder(o) {
         notes: String(o.notes || ""),
         total: Number(o.total || 0),
         kitchen: {
-            startedAt: o.kitchen?.startedAt || null,
-            startedBy: o.kitchen?.startedBy || null,
-            restartCount: Number(o.kitchen?.restartCount || 0),
-            toppingIndex: Number(o.kitchen?.toppingIndex || 0),
-            toppingDone: Array.isArray(o.kitchen?.toppingDone) ? o.kitchen.toppingDone : []
-        }
+            items: Array.isArray(o.kitchen?.items) ? o.kitchen.items : [],
+        },
+        archivedAt: o.archivedAt || null,
+        archivedBy: o.archivedBy || null,
     }
 }
 
+function defaultKitchenItem() {
+    return {
+        startedAt: null,
+        startedBy: null,
+        restartCount: 0,
+        toppingIndex: 0,
+        toppingDone: [],
+        lastBackAtIndex: -1,
+        ovenConfirmedAt: null,
+        cookedConfirmedAt: null,
+        backUsed: false,
+        doneAt: null,
+        canceledAt: null,
+        canceledBy: null,
+    }
+}
+
+function ensureKitchen(order) {
+    const n = Array.isArray(order.items) ? order.items.length : 0
+    order.kitchen = order.kitchen || {}
+    order.kitchen.items = Array.isArray(order.kitchen.items) ? order.kitchen.items : []
+    while (order.kitchen.items.length < n) {
+        order.kitchen.items.push(defaultKitchenItem())
+    }
+    // if items were removed, trim extras
+    if (order.kitchen.items.length > n) order.kitchen.items = order.kitchen.items.slice(0, n)
+}
+
+function recomputeOverallStatus(order) {
+    const ks = Array.isArray(order.kitchen?.items) ? order.kitchen.items : []
+    if (ks.length === 0) return "RECEIVED"
+
+    const anyInProgress = ks.some(k => {
+        return !!k.startedAt || Number(k.toppingIndex || 0) > 0 || !!k.ovenConfirmedAt || !!k.cookedConfirmedAt
+    })
+
+    const allFinished = ks.every(k => !!k.doneAt || !!k.canceledAt)
+
+    if (allFinished) return "COMPLETED"
+    if (anyInProgress) return "IN_PROGRESS"
+    return "RECEIVED"
+}
+
+async function maybeArchive(order, req, res) {
+    ensureKitchen(order)
+    order.status = recomputeOverallStatus(order)
+
+    const ks = order.kitchen.items
+    const allFinished = ks.length > 0 && ks.every(k => !!k.doneAt || !!k.canceledAt)
+
+    if (!allFinished) {
+        await order.save()
+        return res.json(normalizeOrder(order))
+    }
+
+    const obj = order.toObject()
+    const originalId = String(order._id)
+    delete obj._id
+
+    await ArchivedOrder.create({
+        ...obj,
+        status: "completed",
+        originalOrderId: originalId,
+        archivedAt: new Date(),
+        archivedBy: req.user?._id || null,
+    })
+
+    await Order.deleteOne({ _id: originalId })
+    return res.json({ moved: true })
+}
+
+/* =========================
+   GET /api/staff/orders
+   ?show=active|archived
+========================= */
 router.get("/", requireAuth, requireStaff, async (req, res) => {
     try {
-        const orders = await Order.find({ archived: false }).sort({ createdAt: 1 }).limit(200)
-        res.json(orders.map(normalizeOrder))
+        const show = String(req.query.show || "active").toLowerCase()
+
+        if (show === "archived") {
+            const archived = await ArchivedOrder.find({})
+                .sort({ archivedAt: -1, createdAt: -1 })
+                .limit(200)
+            return res.json(archived.map((o, i) => ({ ...normalizeOrder(o), displayNumber: i + 1 })))
+        }
+
+        const orders = await Order.find({})
+            .sort({ createdAt: 1 })
+            .limit(200)
+
+        res.json(orders.map((o, i) => ({ ...normalizeOrder(o), displayNumber: i + 1 })))
     } catch (e) {
         res.status(500).json({ message: "Failed to fetch staff orders" })
     }
 })
 
+/* =========================
+   PATCH /api/staff/orders/:id
+   body: { itemIndex, status?, kitchen? }
+========================= */
 router.patch("/:id", requireAuth, requireStaff, async (req, res) => {
     try {
         const { id } = req.params
@@ -85,29 +177,76 @@ router.patch("/:id", requireAuth, requireStaff, async (req, res) => {
         const order = await Order.findById(id)
         if (!order) return res.status(404).json({ message: "Order not found" })
 
-        if (patch.status) {
-            const s = String(patch.status)
-            if (s === "RECEIVED") order.status = "pending"
-            if (s === "IN_PROGRESS") order.status = "in_progress"
-            if (s === "READY") order.status = "completed"
-            if (s === "CANCELLED") order.status = "cancelled"
+        ensureKitchen(order)
+
+        const itemIndex = Number(patch.itemIndex || 0)
+        const n = Array.isArray(order.items) ? order.items.length : 0
+        if (itemIndex < 0 || itemIndex >= n) return res.status(400).json({ message: "Invalid itemIndex" })
+
+        const ki = order.kitchen.items[itemIndex] || defaultKitchenItem()
+
+        // STATUS = per-suborder now
+        if (patch.status !== undefined) {
+            const s = String(patch.status).toUpperCase()
+            let next = null
+            if (s === "RECEIVED" || s === "PENDING") next = "RECEIVED"
+            else if (s === "IN_PROGRESS") next = "IN_PROGRESS"
+            else if (s === "DONE" || s === "READY" || s === "COMPLETED") next = "COMPLETED"
+            else if (s === "CANCELED" || s === "CANCELLED") next = "CANCELED"
+            else return res.status(400).json({ message: "Invalid status" })
+
+            if (next === "RECEIVED") {
+                // restart THIS suborder (reset to "not started" at step 0)
+                const prevRestart = Number(ki.restartCount || 0)
+                Object.assign(ki, defaultKitchenItem())
+                ki.restartCount = prevRestart + 1
+
+                // IMPORTANT: do NOT auto-start on restart
+                ki.startedAt = null
+                ki.startedBy = null
+            }
+
+
+            if (next === "IN_PROGRESS") {
+                if (!ki.startedAt) ki.startedAt = new Date()
+                if (!ki.startedBy) ki.startedBy = req.user?._id || null
+            }
+
+            if (next === "COMPLETED") {
+                ki.doneAt = new Date()
+                ki.canceledAt = null
+                ki.canceledBy = null
+            }
+
+            if (next === "CANCELED") {
+                ki.canceledAt = new Date()
+                ki.canceledBy = req.user?._id || null
+                ki.doneAt = null
+            }
         }
 
+        // Kitchen updates = per-suborder
         if (patch.kitchen && typeof patch.kitchen === "object") {
-            order.kitchen = order.kitchen || {}
             const k = patch.kitchen
 
-            if (k.startedAt !== undefined) order.kitchen.startedAt = k.startedAt ? new Date(k.startedAt) : null
-            if (k.startedBy !== undefined) order.kitchen.startedBy = k.startedBy || null
-            if (k.restartCount !== undefined) order.kitchen.restartCount = Number(k.restartCount || 0)
-            if (k.toppingIndex !== undefined) order.kitchen.toppingIndex = Number(k.toppingIndex || 0)
-            if (k.toppingDone !== undefined) order.kitchen.toppingDone = Array.isArray(k.toppingDone) ? k.toppingDone.map(v => !!v) : []
+            if (k.startedAt !== undefined) ki.startedAt = k.startedAt ? new Date(k.startedAt) : null
+            if (k.startedBy !== undefined) ki.startedBy = k.startedBy || null
+            if (k.restartCount !== undefined) ki.restartCount = Number(k.restartCount || 0)
+            if (k.toppingIndex !== undefined) ki.toppingIndex = Number(k.toppingIndex || 0)
+            if (k.toppingDone !== undefined) ki.toppingDone = Array.isArray(k.toppingDone) ? k.toppingDone.map(v => !!v) : []
+            if (k.lastBackAtIndex !== undefined) ki.lastBackAtIndex = Number(k.lastBackAtIndex || -1)
+            if (k.ovenConfirmedAt !== undefined) ki.ovenConfirmedAt = k.ovenConfirmedAt ? new Date(k.ovenConfirmedAt) : null
+            if (k.cookedConfirmedAt !== undefined) ki.cookedConfirmedAt = k.cookedConfirmedAt ? new Date(k.cookedConfirmedAt) : null
+            if (k.backUsed !== undefined) ki.backUsed = !!k.backUsed
         }
 
-        await order.save()
-        res.json(normalizeOrder(order))
+        order.kitchen.items[itemIndex] = ki
+
+        // compute overall + archive only if ALL finished
+        return await maybeArchive(order, req, res)
     } catch (e) {
-        res.status(500).json({ message: "Failed to patch order" })
+        console.error("PATCH FAIL:", e)
+        res.status(500).json({ message: e?.message || "Failed to patch order" })
     }
 })
 

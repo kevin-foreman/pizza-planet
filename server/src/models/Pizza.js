@@ -35,7 +35,7 @@ const pizzaSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ['draft', 'pending', 'in-kitchen', 'ready', 'completed', 'cancelled'],
+      enum: ['draft', 'pending', 'in-kitchen', 'ready', 'completed', 'canceled'],
       default: 'draft'
     },
     totalPrice: {

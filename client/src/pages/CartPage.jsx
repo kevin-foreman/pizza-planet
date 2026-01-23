@@ -42,7 +42,7 @@ export default function CartPage() {
 					</div>
 				</div>
 			) : (
-				<div className="page cart-page">
+				<div className="cart-page">
 					<div className="cart-grid">
 						<section className="panel">
 							<h2>Items</h2>
@@ -141,9 +141,6 @@ export default function CartPage() {
 
 							<button type="button" onClick={goCheckout} style={{ width: "100%", marginTop: "12px", padding: "10px" }}>Checkout</button>
 
-							<p style={{ fontSize: "13px", opacity: .8, marginTop: "10px" }}>
-								This is session cart only for now (local storage). Orders will be connected next.
-							</p>
 						</aside>
 					</div>
 				</div>
