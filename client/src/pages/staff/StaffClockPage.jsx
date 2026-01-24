@@ -118,10 +118,11 @@ export default function StaffClockPage() {
 
     return (
         <div className="page staff-clock">
-            <div className="page-header center-title">
-                <h1>Clock In / Out</h1>
-                <p className="page-sub">Status for {user?.displayName || 'Staff'}.</p>
+            <div className={"panel staff-clock-status"}>
+                <p className="page-sub">Status for: {user?.displayName || 'Staff'}</p>
                 {error && <div className="error">{error}</div>}
+                <div className={`clock-status ${isIn ? 'in' : 'out'}`}>
+                    {isIn ? 'CLOCKED IN' : 'CLOCKED OUT'}            </div>
             </div>
 
             <div className="panel staff-clock-card">
@@ -129,27 +130,38 @@ export default function StaffClockPage() {
                     <div>Loading...</div>
                 ) : (
                     <>
-                        <div className={`clock-status ${isIn ? 'in' : 'out'}`}>
-                            {isIn ? 'CLOCKED IN' : 'CLOCKED OUT'}
-                        </div>
-
                         {isIn && (
                             <div className="clock-meta">
-                                <div>Started:{new Date(sinceMs).toLocaleString()}</div>
-                                <div>Elapsed:{elapsed}</div>
+                                <div className="meta-row">
+                                    <div className="meta-left">
+                                        <div className="label">Started</div>
+                                        <div className="value">{new Date(sinceMs).toLocaleString()}</div>
+                                    </div>
+
+                                    <div className="meta-right">
+                                        <div className="label">Elapsed</div>
+                                        <div className="value live">{elapsed}</div>
+                                    </div>
+                                </div>
                             </div>
                         )}
 
                         {summary && (
                             <div className="clock-summary">
-                                <div>Total worked:{msToHoursMins(summary.totalMs || 0)}</div>
-                                <div>Shifts:{summary.shiftCount || 0}</div>
+                                <div className="row">
+                                    <div className="left">Total worked:</div>
+                                    <div className="right"> {msToHoursMins(summary.totalMs || 0)}</div>
+                                </div>
+                                <div className="row">
+                                    <div className="left">Shifts: </div>
+                                    <div className="right">{summary.shiftCount || 0}</div>
+                                </div>
                             </div>
                         )}
 
                         <div className="clock-actions">
                             {isIn ? (
-                                <button className="btn-danger" type="button" disabled={busy} onClick={() => setConfirm('out')}>
+                                <button className="btn-clock-out" type="button" disabled={busy} onClick={() => setConfirm('out')}>
                                     Clock Out
                                 </button>
                             ) : (
@@ -162,40 +174,42 @@ export default function StaffClockPage() {
                 )}
             </div>
 
-            {confirm && (
-                <div className="modal-overlay">
-                    <div className="modal-card">
-                        <h3 className="modal-title">
-                            {confirm === 'in' ? 'Confirm Clock In' : 'Confirm Clock Out'}
-                        </h3>
+            {
+                confirm && (
+                    <div className="modal-overlay">
+                        <div className="modal-card">
+                            <h3 className="modal-title">
+                                {confirm === 'in' ? 'Confirm Clock In' : 'Confirm Clock Out'}
+                            </h3>
 
-                        <p className="modal-text">
-                            {confirm === 'in'
-                                ? 'You are about to clock in. Continue?'
-                                : 'You are about to clock out. Continue?'}
-                        </p>
+                            <p className="modal-text">
+                                {confirm === 'in'
+                                    ? 'You are about to clock in. Continue?'
+                                    : 'You are about to clock out. Continue?'}
+                            </p>
 
-                        <div className="modal-actions">
-                            <button type="button" onClick={() => setConfirm(null)} className="btn-ghost">
-                                Cancel
-                            </button>
+                            <div className="modal-actions">
+                                <button type="button" onClick={() => setConfirm(null)} className="btn-ghost">
+                                    Cancel
+                                </button>
 
-                            <button
-                                type="button"
-                                disabled={busy}
-                                onClick={async () => {
-                                    const action = confirm
-                                    setConfirm(null)
-                                    action === 'in' ? await clockIn() : await clockOut()
-                                }}
-                            >
-                                Confirm
-                            </button>
+                                <button
+                                    type="button"
+                                    disabled={busy}
+                                    onClick={async () => {
+                                        const action = confirm
+                                        setConfirm(null)
+                                        action === 'in' ? await clockIn() : await clockOut()
+                                    }}
+                                >
+                                    Confirm
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     )
 
 

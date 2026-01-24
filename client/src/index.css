@@ -699,10 +699,13 @@ main,
 		justify-content: center;
 	}
 }
-.cart-page{
-	display:block;			/* or keep flex but center it */
+
+.cart-page {
+	display: block;
+	/* or keep flex but center it */
 	/* if you need flex: justify-content:center; */
 }
+
 .cart-count {
 	font-weight: 600;
 	opacity: 0.9;
@@ -736,12 +739,13 @@ main,
 	margin: 0 auto 18px;
 
 }
+
 /* ONLY staff/orders page */
 .staff-page .order-card,
-.orders-scroll .order-card{
-	min-width:800px;
-	max-width:980px;
-	margin:0 auto 18px;
+.orders-scroll .order-card {
+	min-width: 800px;
+	max-width: 980px;
+	margin: 0 auto 18px;
 }
 
 /* Make header line bigger + clearer */
@@ -2057,8 +2061,23 @@ section {
 }
 
 .btn-clock-in:hover {
-	background: #ff0000;
-	color: #000000;
+	background: #00ff6a;
+	border: 1px solid #27ae60;
+	color: #000;
+}
+
+.btn-clock-out {
+	font-size: 30px;
+	font-family: var(--apple-font);
+	background: #e74c3c;
+	border: 1px solid #c0392b;
+	color: #000;
+}
+
+.btn-clock-out:hover {
+	background: #0000003d;
+	border: 1px solid #0000003d;
+	color: #000;
 }
 
 @media(max-width:700px) {
@@ -2068,37 +2087,98 @@ section {
 }
 
 .staff-clock-card {
-	background-color: #000;
-	display: flex;
-	flex-direction: column;
 	align-items: center;
-	gap: 14px;
-	text-align: center;
+	font-size: 25px;
+	font-family: var(--apple-font);
+	display: grid;
+	justify-items: center;
+	padding: 28px 44px;
+	margin: 0 auto;
+	width: max-content;
+}
+
+.staff-clock-status {
+	background: rgba(0, 0, 0, 0.25);
+	border: 1px solid rgba(255, 255, 255, 0);
+	max-width: fit-content;
+	margin: 0 auto;
+	margin-bottom: 16px;
 }
 
 .clock-status {
-	font-weight: 900;
-	letter-spacing: 1px;
+	font-family: var(--apple-font);
 	padding: 10px 16px;
 	border-radius: 999px;
 	border: 1px solid rgba(255, 255, 255, .18);
+	margin-top: 10px;
+
 }
 
 .clock-status.in {
-	background: rgba(46, 204, 113, .12);
-	border-color: rgba(46, 204, 113, .45);
+	font-size: 50px;
+	background: rgb(46, 204, 112);
+	border-color: rgb(46, 204, 112);
+	max-width: fit-content;
+	font-weight: 500;
 }
 
 .clock-status.out {
-	background: rgba(255, 80, 80, .10);
-	border-color: rgba(255, 80, 80, .45);
+	font-size: 50px;
+	background: rgb(255, 80, 80);
+	border-color: rgb(255, 80, 80);
+	max-width: fit-content;
+	font-weight: 500;
 }
 
 .clock-meta {
-	opacity: .9;
+	width: 100%;
+	padding-bottom: 18px;
+	padding: 0 36px;
+	border-bottom: 1px solid rgba(255, 255, 255, .15);
+	margin-bottom: 18px;
+}
+
+.meta-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+}
+
+.meta-left,
+.meta-right {
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
+	gap: 4px;
+}
+
+.meta-right {
+	text-align: right;
+}
+
+
+.label {
+	font-size: 13px;
+	opacity: .7;
+	letter-spacing: .4px;
+}
+
+.value {
+	font-size: 25px;
+	font-weight: 700;
+}
+
+
+
+
+.clock-summary {
+	width: 100%;
+	padding: 0 28px;
+}
+
+.row {
+	display: flex;
+	justify-content: space-between;
+
 }
 
 .clock-actions {
@@ -2108,7 +2188,7 @@ section {
 
 .clock-summary {
 	opacity: .9;
-	display: flex;
+	font-family: var(--apple-font);
 	gap: 16px;
 	flex-wrap: wrap;
 	justify-content: center;
