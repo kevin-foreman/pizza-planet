@@ -136,11 +136,10 @@ hr {
 
 .container.full-width {
 	max-width: none;
+
 }
 
-.main {
-	margin-top: 16px;
-}
+
 
 .page {
 	padding: 16px;
@@ -258,7 +257,7 @@ section {
 .header-banner {
 	margin-top: 0px;
 	width: 100%;
-	height: 200px;
+	height: 300px;
 	margin-bottom: 0;
 	position: relative;
 	z-index: 0;
@@ -290,11 +289,6 @@ section {
 
 }
 
-main,
-.main {
-	margin-top: 0;
-	padding-top: 0;
-}
 
 .header-left .main-nav {
 	display: flex;
@@ -431,7 +425,7 @@ main,
 	flex-direction: column;
 	font-size: 0.9em;
 	gap: 6px;
-	margin-top: 48px;
+	margin-top: auto;
 	padding: 16px 0;
 	text-align: center;
 }
@@ -574,12 +568,10 @@ main,
 .menu-preview {
 	background: transparent;
 	border: none;
-	margin-top: 64px;
+	margin-top: 300px;
 }
 
 .menu-cards {
-	border: 1px solid #8aa2ff;
-	;
 	display: grid;
 	gap: 16px;
 	grid-template-columns: 1fr;
@@ -743,9 +735,17 @@ main,
 /* ONLY staff/orders page */
 .staff-page .order-card,
 .orders-scroll .order-card {
+	font-family: var(--apple-font);
 	min-width: 800px;
 	max-width: 980px;
 	margin: 0 auto 18px;
+}
+
+.no-orders {
+	text-align: center;
+	color: var(--text-color);
+	font-weight: 800;
+	font-size: 60px;
 }
 
 /* Make header line bigger + clearer */
@@ -1870,10 +1870,8 @@ section {
 	align-items: center;
 	display: flex;
 	gap: 10px;
-	/* main spacing */
 	flex-wrap: wrap;
 	margin-top: 6px;
-	/* space below title */
 }
 
 /* Role pills */
@@ -2039,7 +2037,6 @@ section {
 
 /*staff actions*/
 .staff-page {
-	height: 100vh;
 	display: flex;
 	flex-direction: column;
 }

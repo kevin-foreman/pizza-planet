@@ -64,9 +64,10 @@ export default function NavBar() {
 					</>
 				) : (
 					<>
-						<Link to="/login">Login</Link>
+						<Link to="/login" state={{ mode: "login" }}>Login</Link>
 						<span className="nav-sep">|</span>
-						<Link to="/signup">Sign Up</Link>
+						<Link to="/login" state={{ mode: "signup" }} className="nav-link">Sign Up</Link>
+
 					</>
 				)}
 			</div>

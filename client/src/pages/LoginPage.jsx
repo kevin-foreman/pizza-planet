@@ -1,5 +1,5 @@
-import React, { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import React, { useEffect, useState } from "react"
+import { useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext.jsx"
 
 function routeForRole(role) {
@@ -47,7 +47,15 @@ export default function LoginPage() {
   const { login, signup } = useAuth()
   const navigate = useNavigate()
 
+  const location = useLocation()
+
   const [mode, setMode] = useState("login")
+
+  useEffect(() => {
+    if (location.state?.mode === "signup") setMode("signup")
+    if (location.state?.mode === "login") setMode("login")
+  }, [location.state])
+
   const [displayName, setDisplayName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")

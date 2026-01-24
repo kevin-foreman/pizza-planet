@@ -106,7 +106,7 @@ export default function StaffOrdersPage(){
 			{error&&<div className="error">{error}</div>}
 			<div className="orders-scroll">
 				{orders.length===0?(
-					<div style={{padding:12}}>No orders yet.</div>
+					<div className="no-orders">No orders at the moment.</div>
 				):(
 					orders.map(o=>(
 						<StaffOrderCard key={o._id} order={o} onPatch={onPatch} toppingNameById={toppingNameById}/>
