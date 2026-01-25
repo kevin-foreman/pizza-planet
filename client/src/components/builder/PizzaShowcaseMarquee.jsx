@@ -4,122 +4,99 @@ import { jsonFetch } from "../../api/http.js"
 import { usePricing } from "../../context/PricingContext.jsx"
 import PizzaVisualizer from "./PizzaVisualizer.jsx"
 
+const API_ORIGIN = import.meta.env.VITE_API_ORIGIN || "http://localhost:4000"
+function fixImg(u) {
+    u = String(u || "")
+    if (!u) return ""
+    if (u.startsWith("http://") || u.startsWith("https://")) return u
+
+    // uploaded (common forms)
+    if (u.startsWith("/uploads/")) return API_ORIGIN + u
+    if (u.startsWith("uploads/")) return API_ORIGIN + "/" + u
+
+    // if your DB stores just "toppings/shrimp.webp"
+    if (u.startsWith("toppings/")) return API_ORIGIN + "/uploads/" + u
+
+    // leave Vite/local stuff alone (/assets, imported urls, etc.)
+    return u
+}
+
 export default function PizzaShowcaseMarquee() {
-    const [orders, setOrders] = useState([])
     const { pricing, toppings, refreshPricing } = usePricing()
     const scrollerRef = useRef(null)
     const navigate = useNavigate()
 
+    const [allToppings, setAllToppings] = useState([])
+
     useEffect(() => {
         refreshPricing()
-        jsonFetch("/api/archived_orders/random?limit=6")
-            .then(d => setOrders(Array.isArray(d) ? d : []))
-            .catch(() => { })
+        jsonFetch("/api/toppings").then(d => setAllToppings(Array.isArray(d) ? d : [])).catch(() => setAllToppings([]))
     }, [])
 
     const toppingById = useMemo(() => {
         const m = new Map()
         for (const t of toppings || []) {
-            const id = String(t.id || t._id || "")
-            if (id) m.set(id, t)
+            const keys = [
+                t.id,
+                t._id,
+                t.code,
+                t.slug,
+            ].filter(Boolean).map(v => String(v))
+            for (const k of keys) m.set(k, t)
         }
         return m
     }, [toppings])
 
+
+    function pickRandom(arr, n) {
+        const copy = [...arr]
+        for (let i = copy.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1))
+            const tmp = copy[i]; copy[i] = copy[j]; copy[j] = tmp
+        }
+        return copy.slice(0, n)
+    }
+
+    function randomToppingCount(total) {
+        if (total <= 0) return 0
+        const max = Math.min(8, total)
+        return Math.floor(Math.random() * (max + 1))	//0..max
+    }
+
     const pizzas = useMemo(() => {
+        const sizes = pricing?.sizes || []
+        const crusts = pricing?.crusts || []
+        const sauces = pricing?.sauces || []
+        const tops = (toppings || []).filter(t => (t?.image || t?.img || t?.url || t?.imageUrl))
+
+
+        if (!sizes.length || !crusts.length || !sauces.length || !tops.length) return []
+
         const out = []
-        for (const o of orders) {
-            for (const it of o.items || []) {
-                if (it.type !== "pizza") continue
+        const count = 7
 
-                const sizeId = it?.config?.sizeId || "md"
-                const crustId = it?.config?.crustId || "hand"
-                const sauceId = it?.config?.sauceId || "red"
-                const topIds = it?.config?.toppings || []
+        for (let i = 0; i < count; i++) {
+            const size = sizes[Math.floor(Math.random() * sizes.length)]?.id || "md"
+            const crust = crusts[Math.floor(Math.random() * crusts.length)] || crusts[0]
+            const sauce = sauces[Math.floor(Math.random() * sauces.length)] || sauces[0]
 
-                const crustImg = (pricing?.crusts || []).find(c => c.id === crustId)?.image || ""
-                const sauceImg = (pricing?.sauces || []).find(s => s.id === sauceId)?.image || ""
+            const picked = pickRandom(tops, randomToppingCount(tops.length))
 
-                const topImgs = []
-                for (const id of topIds) {
-                    const t = toppingById.get(String(id))
-                    if (t?.image) topImgs.push(t.image)
-                }
+            out.push({
+                sizeId: size,
+                crustId: crust.id,
+                sauceId: sauce.id,
+                topIds: picked.map(t => String(t.id || t._id || t.code || t.slug)),
+                crustImg: fixImg(crust.image),
+                sauceImg: fixImg(sauce.image),
+                topImgs: picked.map(t => fixImg(t.image || t.img || t.url || t.imageUrl)).filter(Boolean),
 
-                out.push({ sizeId, crustId, sauceId, topIds, crustImg, sauceImg, topImgs })
-
-
-            }
+            })
         }
-
-        if (!out.length) {
-            const sizes = pricing?.sizes || []
-            const crusts = pricing?.crusts || []
-            const sauces = pricing?.sauces || []
-            const tops = toppings || []
-
-            if (crusts.length && sauces.length) {
-                // math for random number of toppings with weighted probabilities
-                function randomToppingCount() {
-                    const r = Math.random()
-                    if (r < 0.15) return 0
-                    if (r < 0.35) return 1
-                    if (r < 0.55) return 2
-                    if (r < 0.65) return 3
-                    if (r < 0.75) return 4
-                    return 5
-                }
-                // picks n random topping images (shuffles available toppings & no duplicates)
-                function pick(n) {
-                    const copy = [...tops].filter(t => t?.image)
-                    for (let i = copy.length - 1; i > 0; i--) {
-                        const j = Math.floor(Math.random() * (i + 1))
-                        const tmp = copy[i]; copy[i] = copy[j]; copy[j] = tmp
-                    }
-                    return copy.slice(0, n).map(t => t.image)
-                }
-
-                function pickIds(n) {
-                    const copy = [...tops].filter(t => t?.id && t?.image)
-                    for (let i = copy.length - 1; i > 0; i--) {
-                        const j = Math.floor(Math.random() * (i + 1))
-                        const tmp = copy[i]; copy[i] = copy[j]; copy[j] = tmp
-                    }
-                    return copy.slice(0, n).map(t => String(t.id))
-                }
-
-                const presets = Array.from({ length: 7 }, () => ({
-                    sizeId: sizes[Math.floor(Math.random() * sizes.length)]?.id || "md",
-                    crustId: crusts[Math.floor(Math.random() * crusts.length)]?.id || crusts[0].id,
-                    sauceId: sauces[Math.floor(Math.random() * sauces.length)]?.id || sauces[0].id,
-                    topIds: pickIds(randomToppingCount()),
-                }))
-
-
-                for (const p of presets) {
-                    const crustImg = crusts.find(c => c.id === p.crustId)?.image || ""
-                    const sauceImg = sauces.find(s => s.id === p.sauceId)?.image || ""
-                    const topImgs = p.topIds
-                        .map(id => toppingById.get(String(id))?.image)
-                        .filter(Boolean)
-
-                    out.push({
-                        sizeId: p.sizeId,
-                        crustId: p.crustId,
-                        sauceId: p.sauceId,
-                        topIds: p.topIds,
-                        crustImg,
-                        sauceImg,
-                        topImgs,
-                    })
-                }
-
-            }
-        }
-
 
         return out
-    }, [orders, pricing, toppings, toppingById])
+    }, [pricing, toppings])
+
 
 
     const loopPizzas = useMemo(() => pizzas.length ? [...pizzas, ...pizzas] : [], [pizzas])
@@ -207,6 +184,8 @@ export default function PizzaShowcaseMarquee() {
                         key={i}
                         onClick={() => {
                             const tops = Array.isArray(p.topIds) ? p.topIds.join(",") : ""
+                            console.log("toppings count", toppings?.length, "tops with images", tops.length)
+
                             navigate(`/builder/pizza?size=${encodeURIComponent(p.sizeId || "md")}&crust=${encodeURIComponent(p.crustId)}&sauce=${encodeURIComponent(p.sauceId)}&tops=${encodeURIComponent(tops)}`)
                         }}
                     >

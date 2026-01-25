@@ -1989,34 +1989,34 @@ strong {
 }
 
 /* put headers tight to the grid rows */
-.admin-grid.head{
-	margin-top:6px;
-	margin-bottom:2px;
+.admin-grid.head {
+	margin-top: 6px;
+	margin-bottom: 2px;
 }
 
 /* remove extra space under section titles so header hugs rows */
-.admin-pricing h2{
-	margin:18px 0 6px;
+.admin-pricing h2 {
+	margin: 18px 0 6px;
 }
 
 /* make sizes rows actually use the 3-col layout */
-.admin-grid.sizes{
-	grid-template-columns:120px 1fr 120px;
+.admin-grid.sizes {
+	grid-template-columns: 120px 1fr 120px;
 }
 
 /* make the header for sizes match the 3-col layout too */
-.admin-grid.head.sizes{
-	grid-template-columns:120px 1fr 120px;
+.admin-grid.head.sizes {
+	grid-template-columns: 120px 1fr 120px;
 }
 
 /* make crust/sauce headers match the 4-col layout (you already do, but force it) */
-.admin-grid.head.four{
-	grid-template-columns:120px 1fr 1.4fr 120px;
+.admin-grid.head.four {
+	grid-template-columns: 120px 1fr 1.4fr 120px;
 }
 
 /* optional: center header labels over their columns */
-.admin-grid.head>div{
-	text-align:center;
+.admin-grid.head>div {
+	text-align: center;
 }
 
 .admin-grid input {
@@ -2122,6 +2122,36 @@ strong {
 .toppings-admin .row select {
 	width: 220px;
 	text-align-last: center;
+}
+
+/* LEFT "Name" cells in the toppings list */
+.toppings-admin .row .name-cell {
+	display: flex;
+	align-items: center;
+	min-height: 44px;
+	/* matches your input height vibe */
+	padding: 0 14px;
+	border-radius: 12px;
+	background: rgba(0, 0, 0, .22);
+	border: 1px solid rgba(255, 255, 255, .08);
+	color: #fff;
+	font-weight: 700;
+	letter-spacing: .2px;
+	line-height: 1.1;
+}
+
+/* if some names wrap, make it look intentional */
+.toppings-admin .row .name-cell small {
+	display: block;
+	font-weight: 600;
+	opacity: .85;
+}
+
+/* optional: keep single-line, clip nicely */
+.toppings-admin .row .name-cell {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 /*PRICECENTEREDNOTFULL*/
@@ -2271,7 +2301,9 @@ strong {
 /*Deletion boxes*/
 .card {
 	position: relative;
+	margin-top: 10px;
 }
+
 
 .price-edit-row {
 	display: flex;
@@ -2594,6 +2626,14 @@ strong {
 
 .card {
 	position: relative;
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+.search {
+	position: relative;
+	margin-top: 10px;
+	margin-bottom: 0px;
 }
 
 /*staff actions*/

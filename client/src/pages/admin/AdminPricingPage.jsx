@@ -67,11 +67,34 @@ export default function AdminPricingPage() {
 
 			}
 			await jsonFetch("/api/pricing", {
-				method: "PATCH",
+				method: "PUT",
 				body: JSON.stringify(payload),
 			})
+
 			await refreshPricing()
 			setMsg("saved")
+		} catch (e) {
+			setErr(String(e?.message || e))
+		}
+	}
+
+	async function redoToppingImage(id, file) {
+		try {
+			setErr("")
+			setMsg("")
+			const fd = new FormData()
+			fd.append("image", file)
+			await jsonFetch(`/api/toppings/${encodeURIComponent(id)}/image`, {
+				method: "POST",
+				body: fd,
+			})
+			await refreshPricing()
+
+			//refresh toppings list so the UI stays in sync (same path, but safe)
+			const t = await jsonFetch("/api/toppings")
+			setToppings(Array.isArray(t) ? t : [])
+
+			setMsg("image replaced")
 		} catch (e) {
 			setErr(String(e?.message || e))
 		}
@@ -264,63 +287,78 @@ export default function AdminPricingPage() {
 				<button type="button" onClick={savePricing}>Save pricing</button>
 			</div>
 
-			<div className="card">
-				<h2>Toppings</h2>
+			<div className="search">
+
 				<input
 					placeholder="search toppings..."
 					value={filter}
 					onChange={e => setFilter(e.target.value)}
 				/>
+				<h2>Toppings</h2>
+
 				<div className="admin-grid head toppings">
 					<div>Name</div>
 					<div>Image path</div>
 					<div>Price</div>
+					<div></div>
 				</div>
 
 				<div className="tops">
-					{filteredTops.map(t => (
-						<div className="admin-grid toppings" key={t._id || t.id}>
-							<div className="name">{t.name}</div>
+					{filteredTops.map(t => {
+						const tid = String(t._id || t.id)
 
-							<input
-								value={String(t.image || "")}
-								onChange={e => {
-									const v = e.target.value
-									setToppings(prev =>
-										prev.map(x =>
-											String(x._id || x.id) === String(t._id || t.id)
-												? { ...x, image: v }
-												: x
-										)
-									)
-								}}
-								onBlur={e =>
-									saveTopping(String(t._id || t.id), { image: e.target.value })
-								}
-							/>
+						return (
+							<div className="admin-grid toppings" key={tid}>
+								<div className="name">{t.name}</div>
 
-							<input
-								className="small"
-								value={String(t.price ?? 0)}
-								onChange={e => {
-									const v = e.target.value
-									setToppings(prev =>
-										prev.map(x =>
-											String(x._id || x.id) === String(t._id || t.id)
-												? { ...x, price: v }
-												: x
-										)
-									)
-								}}
-								onBlur={e =>
-									saveTopping(String(t._id || t.id), { price: e.target.value })
-								}
-							/>
-						</div>
-					))}
+								<input
+									value={String(t.image || "")}
+									onChange={e => {
+										const v = e.target.value
+										setToppings(prev => prev.map(x =>
+											String(x._id || x.id) === tid ? { ...x, image: v } : x
+										))
+									}}
+									onBlur={e => saveTopping(tid, { image: e.target.value })}
+								/>
+
+								<input
+									className="small"
+									value={String(t.price ?? 0)}
+									onChange={e => {
+										const v = e.target.value
+										setToppings(prev => prev.map(x =>
+											String(x._id || x.id) === tid ? { ...x, price: v } : x
+										))
+									}}
+									onBlur={e => saveTopping(tid, { price: e.target.value })}
+								/>
+
+								<input
+									type="file"
+									accept="image/*"
+									id={`redo-${tid}`}
+									style={{ display: "none" }}
+									onChange={e => {
+										const file = e.target.files?.[0]
+										if (!file) return
+										redoToppingImage(tid, file)
+										e.target.value = ""
+									}}
+								/>
+
+								<button
+									type="button"
+									onClick={() => document.getElementById(`redo-${tid}`)?.click()}
+								>
+									Redo image
+								</button>
+							</div>
+						)
+					})}
+
 				</div>
 
-				<div className="hint">tip:price saves on blur</div>
 			</div>
 		</div>
 	)

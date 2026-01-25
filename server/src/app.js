@@ -24,6 +24,8 @@ import { errorHandler } from "./middleware/errorHandler.js"
 /*For Image uploading for toppings*/
 import path from "path"
 import { fileURLToPath } from "url"
+/*For Image deletion for toppings*/
+import multer from "multer"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -145,6 +147,31 @@ app.put("/api/pricing", async (req, res) => {
     res.status(500).send(e?.message || String(e))
   }
 })
+
+app.patch("/api/pricing", async (req, res) => {
+  try {
+    const payload = req.body
+    const updated = await Pricing.findOneAndUpdate(
+      { key: "singleton" },
+      {
+        $set: {
+          basePrice: payload.basePrice,
+          sizes: payload.sizes,
+          crusts: payload.crusts,
+          sauces: payload.sauces,
+          toppings: payload.toppings,
+          taxRate: payload.taxRate || 0,
+        }
+      },
+      { new: true, upsert: true }
+    ).lean()
+    res.json(updated)
+  } catch (e) {
+    console.error("PATCH /api/pricing failed:", e)
+    res.status(500).send(e?.message || String(e))
+  }
+})
+
 app.use("/api", adminUsers)
 app.use("/api/auth", authRoutes)
 app.use("/api/pizzas", pizzaRoutes)

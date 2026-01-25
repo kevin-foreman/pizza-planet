@@ -1,6 +1,7 @@
 import Topping from '../models/Topping.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
-import fs from "fs"
+import fs from "fs/promises"
+
 import path from "path"
 
 export const DEFAULT_TOPPINGS = [
@@ -48,30 +49,30 @@ export const getAllToppings = asyncHandler(async (req, res) => {
   res.json(toppings)
 })
 
-export const updateTopping=asyncHandler(async(req,res)=>{
-	const{id}=req.params
-	const $set={}
+export const updateTopping = asyncHandler(async (req, res) => {
+  const { id } = req.params
+  const $set = {}
 
-	if(req.body.isAvailable!==undefined){
-		$set.isAvailable=String(req.body.isAvailable).toLowerCase()==="true"
-	}
+  if (req.body.isAvailable !== undefined) {
+    $set.isAvailable = String(req.body.isAvailable).toLowerCase() === "true"
+  }
 
-	if(req.body.price!==undefined)$set.price=Number(req.body.price)||0
+  if (req.body.price !== undefined) $set.price = Number(req.body.price) || 0
 
-	if(req.body.image!==undefined)$set.image=String(req.body.image||"")
+  if (req.body.image !== undefined) $set.image = String(req.body.image || "")
 
-	if($set.isAvailable===true){
-		const current=await Topping.findById(id).lean()
-		if(!current)return res.status(404).json({message:"Topping not found"})
-		const nextImage=$set.image!==undefined?$set.image:current.image
-		if(!nextImage){
-			return res.status(400).json({message:"Cannot enable a topping without an image"})
-		}
-	}
+  if ($set.isAvailable === true) {
+    const current = await Topping.findById(id).lean()
+    if (!current) return res.status(404).json({ message: "Topping not found" })
+    const nextImage = $set.image !== undefined ? $set.image : current.image
+    if (!nextImage) {
+      return res.status(400).json({ message: "Cannot enable a topping without an image" })
+    }
+  }
 
-	const topping=await Topping.findByIdAndUpdate(id,{$set},{new:true,runValidators:true})
-	if(!topping)return res.status(404).json({message:"Topping not found"})
-	res.json(topping)
+  const topping = await Topping.findByIdAndUpdate(id, { $set }, { new: true, runValidators: true })
+  if (!topping) return res.status(404).json({ message: "Topping not found" })
+  res.json(topping)
 })
 
 
@@ -104,7 +105,8 @@ export const createTopping = asyncHandler(async (req, res) => {
     const oldPath = path.join(process.cwd(), "src/uploads/toppings", req.file.filename)
     const newPath = path.join(process.cwd(), "src/uploads/toppings", newFilename)
 
-    fs.renameSync(oldPath, newPath)
+    await fs.rename(oldPath, newPath)
+
 
     image = `/uploads/toppings/${newFilename}`
   }
@@ -129,10 +131,11 @@ export const createTopping = asyncHandler(async (req, res) => {
     if (err.code === 11000) {
       // clean up uploaded file
       if (req.file) {
-        fs.unlink(
-          path.join("src/uploads/toppings", req.file.filename),
-          () => { }
-        )
+        try {
+          await fs.unlink(path.join(process.cwd(), "src/uploads/toppings", req.file.filename))
+        } catch (e) {
+          if (e?.code !== "ENOENT") throw e
+        }
       }
 
       return res.status(400).json({
@@ -148,7 +151,86 @@ export const createTopping = asyncHandler(async (req, res) => {
 // DELETE /api/toppings/:id
 export const deleteTopping = asyncHandler(async (req, res) => {
   const { id } = req.params
-  const topping = await Topping.findByIdAndDelete(id)
-  if (!topping) return res.status(404).json({ message: "Topping not found" })
+
+  const topping = await Topping.findById(id)
+  if (!topping) {
+    return res.status(404).json({ message: "Topping not found" })
+  }
+
+  // attempt to delete uploaded image file (there should always be one)
+  const img = String(topping.image || "")
+  if (img.startsWith("/uploads/")) {
+    const absPath = path.join(
+      process.cwd(),
+      "src",
+      img.replace(/^\/uploads\//, "uploads/")
+    )
+
+    try {
+      await fs.unlink(absPath)
+    } catch (e) {
+      if (e?.code !== "ENOENT") throw e
+    }
+  }
+
+
+  await topping.deleteOne()
+
   res.json({ message: "Deleted", id })
+})
+
+// REDO /api/toppings/:id
+export const redoToppingImage = asyncHandler(async (req, res) => {
+  const { id } = req.params
+  const topping = await Topping.findById(id)
+  if (!topping) return res.status(404).json({ message: "Topping not found" })
+  if (!req.file) return res.status(400).json({ message: "Image file required" })
+
+  const img = String(topping.image || "")
+  const uploadsDir = path.join(process.cwd(), "src/uploads/toppings")
+  const tempPath = path.join(uploadsDir, req.file.filename)
+  const isUploaded = img.startsWith("/uploads/toppings/")
+  const isSprite = img.startsWith("/Sprites/Toppings/")
+
+  if (!isUploaded && !isSprite) {
+    return res.status(400).json({ message: "Unsupported image path" })
+  }
+
+  //decide target filename
+  let targetFilename = ""
+  let nextImagePath = ""
+
+  if (isUploaded) {
+    targetFilename = img.split("/").pop()
+    nextImagePath = img
+  } else {
+    const safe = String(topping.id || topping._id || id)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+
+    targetFilename = `${safe || "topping"}.webp`
+    nextImagePath = `/uploads/toppings/${targetFilename}`
+  }
+
+
+  const targetPath = path.join(uploadsDir, targetFilename)
+
+  //remove old target (if exists)
+  try {
+    await fs.unlink(targetPath)
+  } catch (e) {
+    if (e?.code !== "ENOENT") throw e
+  }
+
+  //move new upload into place
+  await fs.rename(tempPath, targetPath)
+
+  //if we changed from sprite->uploads, update DB
+  if (topping.image !== nextImagePath) {
+    topping.image = nextImagePath
+    await topping.save()
+  }
+
+  res.json({ message: "Image replaced", image: topping.image })
 })
