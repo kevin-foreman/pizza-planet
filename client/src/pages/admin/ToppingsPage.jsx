@@ -56,6 +56,11 @@ export default function ToppingsPage() {
         e.preventDefault()
         setBusy(true)
         setError("")
+        if (!file) {
+            setError("Image is required for toppings.")
+            setBusy(false)
+            return
+        }
         try {
             const fd = new FormData()
             fd.append("name", form.name.trim())

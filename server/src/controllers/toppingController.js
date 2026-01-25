@@ -52,10 +52,21 @@ export const updateTopping = asyncHandler(async (req, res) => {
   const { id } = req.params
   const $set = {}
 
-  if (typeof req.body.isAvailable === "boolean") $set.isAvailable = req.body.isAvailable
+  if (req.body.isAvailable !== undefined) {
+    $set.isAvailable = String(req.body.isAvailable).toLowerCase() === "true"
+  }
+
   if (req.body.price !== undefined) $set.price = Number(req.body.price) || 0
 
-  const topping = await Topping.findByIdAndUpdate(id, { $set }, { new: true })
+  if ($set.isAvailable === true) {
+    const current = await Topping.findById(id).lean()
+    if (!current) return res.status(404).json({ message: "Topping not found" })
+    if (!current.image) {
+      return res.status(400).json({ message: "Cannot enable a topping without an image" })
+    }
+  }
+
+  const topping = await Topping.findByIdAndUpdate(id, { $set }, { new: true, runValidators: true })
   if (!topping) return res.status(404).json({ message: "Topping not found" })
   res.json(topping)
 })
@@ -71,7 +82,10 @@ export const createTopping = asyncHandler(async (req, res) => {
   if (!id) {
     id = await uniqueIdFromName(name)
   }
-
+  const avail = String(isAvailable ?? "true").toLowerCase() !== "false"
+  if (avail && !req.file) {
+    return res.status(400).json({ message: "Image is required for available toppings" })
+  }
   let image = ""
 
   if (req.file) {
@@ -91,15 +105,17 @@ export const createTopping = asyncHandler(async (req, res) => {
     image = `/uploads/toppings/${newFilename}`
   }
 
-
+  const priceNum = Number(price) || 0
+  const premiumBool = String(isPremium).toLowerCase() === "true"
+  const availableBool = String(isAvailable ?? "true").toLowerCase() !== "false"
   try {
     const topping = await Topping.create({
       id,
       name,
       type,
-      price,
-      isPremium,
-      isAvailable,
+      price: priceNum,
+      isPremium: premiumBool,
+      isAvailable: availableBool,
       image,
     })
 

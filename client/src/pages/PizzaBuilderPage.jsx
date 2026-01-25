@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react"
 import { useCart } from "../context/CartContext.jsx"
 import { useNavigate, useLocation } from "react-router-dom"
 import { usePricing } from "../context/PricingContext.jsx"
+import { useSearchParams } from "react-router-dom"
 
 export default function PizzaBuilderPage() {
 	const { addItem } = useCart()
@@ -10,10 +11,29 @@ export default function PizzaBuilderPage() {
 	const itemCount = useMemo(() => items?.reduce((a, i) => a + (i.qty || 1), 0) || 0, [items])
 	const navigate = useNavigate()
 	const location = useLocation()
+	const [sp] = useSearchParams()
 
 	useEffect(() => {
-		refreshPricing()
-	}, [location.pathname])
+		const size = sp.get("size")
+		const crust = sp.get("crust")
+		const sauce = sp.get("sauce")
+		const tops = sp.get("tops")
+
+		if (size) setSizeId(size)
+		if (crust) setCrustId(crust)
+		if (sauce) setSauceId(sauce)
+
+		if (tops != null) {
+			const next = {}
+			for (const id of decodeURIComponent(tops).split(",").filter(Boolean)) {
+				next[id] = true
+			}
+			setSelected(next)
+		}
+	}, [sp])
+
+
+
 
 	const [showAddModal, setShowAddModal] = useState(false)
 	const [sizeId, setSizeId] = useState("md")
@@ -214,7 +234,7 @@ export default function PizzaBuilderPage() {
 			if (rr < minR) minR = rr
 			if (rr > maxR) maxR = rr
 		}
-		console.log("R RANGE", minR, maxR, "n", out.length)
+
 
 		return out
 	}

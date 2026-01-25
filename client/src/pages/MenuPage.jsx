@@ -1,7 +1,10 @@
-export default function MenuPage(){
-	return(
+import MenuShowcaseGrid from "../components/builder/MenuShowcaseGrid.jsx"
+
+export default function MenuPage() {
+	return (
 		<div>
-			<h1>Menu</h1>
+			{/* whatever you have */}
+			<MenuShowcaseGrid />
 		</div>
 	)
 }

@@ -13,8 +13,7 @@ export default function AdminPricingPage() {
 				const res = await fetch('/api/pricing')
 				const text = await res.text()
 
-				console.log('status', res.status)
-				console.log('body', text.slice(0, 200))
+
 
 				if (!res.ok || !text) {
 					console.error('Menu load failed', res.status, text)

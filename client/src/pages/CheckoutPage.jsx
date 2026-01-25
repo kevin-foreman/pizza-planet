@@ -74,8 +74,7 @@ export default function CheckoutPage() {
 		e.preventDefault()
 		setErr('')
 		const msg = validate()
-		console.log('VALIDATE MSG:', msg)
-		console.log('CARD DIGITS:', onlyDigits(cardNumber), onlyDigits(cardNumber).length)
+
 
 		if (msg) { setErr(msg); return }
 
@@ -117,7 +116,7 @@ export default function CheckoutPage() {
 
 			}
 
-			console.log('CHECKOUT payload:', payload)
+
 
 			const res = await fetch('/api/checkout', {
 				method: 'POST',

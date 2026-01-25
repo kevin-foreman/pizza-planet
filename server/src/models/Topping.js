@@ -6,7 +6,9 @@ const toppingSchema = new Schema({
 	name: { type: String, required: true, trim: true, unique: true },
 	type: { type: String, enum: ["meat", "veggie", "cheese", "sauce", "other"], default: "other" },
 	price: { type: Number, default: 0 },
-	image: { type: String, default: "" },
+	image: {
+		type: String, required: function () { return this.isAvailable !== false },
+	},
 	isAvailable: { type: Boolean, default: true },
 	isPremium: { type: Boolean, default: false },
 }, { timestamps: true })

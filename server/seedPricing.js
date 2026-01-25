@@ -37,7 +37,7 @@ async function main() {
         { $set: DEFAULT_PRICING },
         { upsert: true, new: true }
     )
-    console.log('Pricing seeded')
+
     await mongoose.disconnect()
 }
 

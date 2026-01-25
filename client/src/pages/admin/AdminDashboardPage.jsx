@@ -9,13 +9,13 @@ export default function AdminDashboardPage() {
 			<div className="menu-cards">
 				<div className="menu-card hover-box">
 					<h3>Pricing</h3>
-					<p>Edit topping and entree prices.</p>
+					<p>Edit prices for: Sizes, Crusts, and Sauces.</p>
 					<Link to="/admin/pricing">Open Pricing</Link>
 				</div>
 
 				<div className="menu-card hover-box">
 					<h3>Toppings</h3>
-					<p>Manage what toppings are available.</p>
+					<p>Manage Add, Edit, and Delete toppings.</p>
 					<Link to="/admin/toppings">Edit Toppings</Link>
 				</div>
 

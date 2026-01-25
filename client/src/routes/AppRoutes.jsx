@@ -1,5 +1,5 @@
 import React from "react"
-import { Routes, Route, Navigate } from "react-router-dom"
+import { Routes, Route, Navigate, useLocation } from "react-router-dom"
 
 import LoginPage from "../pages/LoginPage.jsx"
 import HomePage from "../pages/HomePage.jsx"
@@ -9,7 +9,6 @@ import SaladBuilderPage from "../pages/SaladBuilderPage.jsx"
 import CalzoneBuilderPage from "../pages/CalzoneBuilderPage.jsx"
 import CheckoutPage from "../pages/CheckoutPage.jsx"
 import CartPage from "../pages/CartPage.jsx"
-import OrderConfirmationPage from "../pages/OrderConfirmationPage.jsx"
 
 /* Staff pages */
 import StaffHomePage from '../pages/staff/StaffHomePage.jsx'
@@ -35,6 +34,11 @@ function NotFound() {
   )
 }
 
+function RedirectWithSearch({ to }) {
+  const location = useLocation()
+  return <Navigate to={`${to}${location.search}`} replace />
+}
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -43,84 +47,28 @@ export default function AppRoutes() {
       <Route path="/" element={<HomePage />} />
       <Route path="/menu" element={<MenuPage />} />
 
-      <Route path="/builder" element={<Navigate to="/builder/pizza" replace />} />
+      <Route path="/builder" element={<RedirectWithSearch to="/builder/pizza" />} />
       <Route path="/builder/pizza" element={<PizzaBuilderPage />} />
       <Route path="/builder/salad" element={<SaladBuilderPage />} />
       <Route path="/builder/calzone" element={<CalzoneBuilderPage />} />
 
-      <Route path="/build/pizza" element={<Navigate to="/builder/pizza" replace />} />
-      <Route path="/build/salad" element={<Navigate to="/builder/salad" replace />} />
-      <Route path="/build/calzone" element={<Navigate to="/builder/calzone" replace />} />
+      <Route path="/build/pizza" element={<RedirectWithSearch to="/builder/pizza" />} />
+      <Route path="/build/salad" element={<RedirectWithSearch to="/builder/salad" />} />
+      <Route path="/build/calzone" element={<RedirectWithSearch to="/builder/calzone" />} />
 
       <Route path="/cart" element={<CartPage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/order-confirmation" element={<div style={{ padding: 16 }}>Thank you for your Purchase (There will be a track here soon)</div>} />
 
-      {/*protected role routes */}
-      <Route
-        path="/staff"
-        element={
-          <RequireRole roles={["staff", "admin"]}>
-            <StaffHomePage />
-          </RequireRole>
-        }
-      />
-      <Route
-        path="/staff/archived"
-        element={
-          <RequireRole roles={["staff", "admin"]}>
-            <ArchivedOrdersPage />
-          </RequireRole>
-        }
-      />
-      <Route
-        path="/staff/clock"
-        element={
-          <RequireRole roles={["staff", "admin"]}>
-            <StaffClockPage />
-          </RequireRole>
-        }
-      />
-      <Route
-        path="/staff/orders"
-        element={
-          <RequireRole roles={["staff", "admin"]}>
-            <StaffOrdersPage />
-          </RequireRole>
-        }
-      />
-      <Route
-        path="/admin"
-        element={
-          <RequireRole role="admin">
-            <AdminDashboardPage />
-          </RequireRole>
-        }
-      />
-      <Route
-        path="/admin/pricing"
-        element={
-          <RequireRole role="admin">
-            <AdminPricingPage />
-          </RequireRole>
-        }
-      />
-      <Route
-        path="/admin/toppings"
-        element={
-          <RequireRole role="admin">
-            <ToppingsPage />
-          </RequireRole>
-        }
-      />
-      <Route
-        path="/admin/users"
-        element={
-          <RequireRole role="admin">
-            <AdminUsersPage />
-          </RequireRole>
-        }
-      />
+      <Route path="/staff" element={<RequireRole roles={["staff", "admin"]}><StaffHomePage /></RequireRole>} />
+      <Route path="/staff/archived" element={<RequireRole roles={["staff", "admin"]}><ArchivedOrdersPage /></RequireRole>} />
+      <Route path="/staff/clock" element={<RequireRole roles={["staff", "admin"]}><StaffClockPage /></RequireRole>} />
+      <Route path="/staff/orders" element={<RequireRole roles={["staff", "admin"]}><StaffOrdersPage /></RequireRole>} />
+
+      <Route path="/admin" element={<RequireRole role="admin"><AdminDashboardPage /></RequireRole>} />
+      <Route path="/admin/pricing" element={<RequireRole role="admin"><AdminPricingPage /></RequireRole>} />
+      <Route path="/admin/toppings" element={<RequireRole role="admin"><ToppingsPage /></RequireRole>} />
+      <Route path="/admin/users" element={<RequireRole role="admin"><AdminUsersPage /></RequireRole>} />
 
       <Route path="*" element={<NotFound />} />
     </Routes>
