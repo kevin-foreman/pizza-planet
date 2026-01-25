@@ -550,12 +550,56 @@ section {
 	width: 100%;
 }
 
+/*force crust bigger (wins everything)*/
+.pizza-stage .pizza-visualizer img.pizza-layer.base {
+	transform: scale(1.2) !important;
+	transform-origin: center !important;
+	object-fit: cover !important;
+}
+
+/*keep sauce a bit smaller than crust*/
+.pizza-stage .pizza-visualizer img.pizza-layer.sauce {
+	transform: scale(1) !important;
+	transform-origin: center !important;
+	object-fit: contain !important;
+}
+
 .pizza-visualizer {
 	position: relative;
 	width: 1024px;
 	height: 1024px;
 	margin-top: 0;
 	margin-bottom: 0;
+}
+
+.pizza-visualizer .pv-topping {
+	position: absolute;
+	width: 26%;
+	height: auto;
+	object-fit: contain;
+	transform: translate(-50%, -50%) scale(1.35);
+	transform-origin: center;
+	filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.35));
+	pointer-events: none;
+}
+
+.pizza-visualizer .pizza-layer {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	pointer-events: none;
+}
+
+.pizza-visualizer .pizza-layer.base {
+	transform: scale(2);
+	transform-origin: center;
+}
+
+.pizza-visualizer .pizza-layer.sauce {
+	transform: scale(1.18);
+	transform-origin: center;
 }
 
 .pizza-layer {
@@ -740,27 +784,91 @@ section {
 
 .menu-showcase-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-	gap: 16px
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: 20px;
 }
 
 .menu-showcase-card {
 	position: relative;
-	height: 260px;
-	/* hard height so nothing can grow */
+	height: 340px;
 	overflow: hidden;
 	/* stops giant overlap */
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	padding: 12px;
-	border-radius: 14px;
-	border: 1px solid rgba(255, 255, 255, 0.12);
+	padding: 16px 16px 18px;
+	border-radius: 16px;
+	overflow: visible;
+	border: 1px solid rgba(255, 255, 255, 0.733);
 	background: rgba(0, 0, 0, 0.18);
 	cursor: pointer;
 }
 
+/*for the toppings on the menu*/
+.menu-showcase-card .pizza-stage {
+	position: relative;
+	width: 200px !important;
+	height: 200px !important;
+}
+
+/* the visualizer must be the containing block */
+.menu-showcase-card .pizza-visualizer {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+/* base + sauce: force perfect center + fill */
+.menu-showcase-card .pizza-layer {
+	position: absolute !important;
+	inset: 0 !important;
+	width: 100% !important;
+	height: 100% !important;
+	object-fit: contain !important;
+	transform: scale(1) !important;
+	transform-origin: center !important;
+}
+
+.menu-pizza-meta {
+	text-align: center;
+	margin-bottom: 8px;
+}
+
+.menu-pizza-desc {
+	font-size: 14px;
+	line-height: 1.35;
+	color: rgba(255, 255, 255, 0.92);
+	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.menu-pizza-price {
+	margin-top: 4px;
+	font-size: 16px;
+	font-weight: 800;
+	color: #ffd27d;
+	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.menu-showcase-meta {
+	margin-top: 12px;
+	display: flex;
+	justify-content: center;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+
+.pill {
+	padding: 4px 8px;
+	margin-top: 5px;
+	font-size: 11px;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.10);
+	border: 1px solid rgba(255, 255, 255, 0.18);
+	color: rgba(255, 255, 255, 0.95);
+}
+
+/*for the toppings on the menu*/
 .pv-mini {
 	width: 200px;
 	height: 200px;
@@ -1835,6 +1943,84 @@ strong {
 
 .tooltip-wrapper:hover .tooltip {
 	opacity: 1;
+}
+
+/*========================== ===*/
+/* ADMIN       */
+/*============================*/
+/*center the whole admin page content*/
+.admin-pricing {
+	max-width: 980px;
+	margin: 0 auto;
+	padding: 24px 16px;
+}
+
+
+.admin-grid.baseprice {
+	grid-template-columns: 120px 1fr;
+	max-width: 980px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+
+/*input polish*/
+.admin-grid input {
+	padding: 8px 10px;
+	border-radius: 8px;
+}
+
+/*optional: keep code/mult/price centered*/
+.admin-grid input.small {
+	text-align: center;
+}
+
+
+.admin-pricing h2 {
+	margin: 24px 0 8px;
+}
+
+.admin-grid {
+	display: grid;
+	grid-template-columns: 120px 1fr 1.4fr 120px;
+	gap: 12px;
+	align-items: center;
+	margin: 8px 0;
+}
+
+/* put headers tight to the grid rows */
+.admin-grid.head{
+	margin-top:6px;
+	margin-bottom:2px;
+}
+
+/* remove extra space under section titles so header hugs rows */
+.admin-pricing h2{
+	margin:18px 0 6px;
+}
+
+/* make sizes rows actually use the 3-col layout */
+.admin-grid.sizes{
+	grid-template-columns:120px 1fr 120px;
+}
+
+/* make the header for sizes match the 3-col layout too */
+.admin-grid.head.sizes{
+	grid-template-columns:120px 1fr 120px;
+}
+
+/* make crust/sauce headers match the 4-col layout (you already do, but force it) */
+.admin-grid.head.four{
+	grid-template-columns:120px 1fr 1.4fr 120px;
+}
+
+/* optional: center header labels over their columns */
+.admin-grid.head>div{
+	text-align:center;
+}
+
+.admin-grid input {
+	width: 100%;
 }
 
 /*========================== ===*/

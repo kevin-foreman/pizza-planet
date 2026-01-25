@@ -1,137 +1,327 @@
-import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useEffect, useMemo, useState } from "react"
+import { jsonFetch } from "../../api/http.js"
+import { usePricing } from "../../context/PricingContext.jsx"
+
+function toNum(v, fallback = 0) {
+	const n = Number(v)
+	if (Number.isFinite(n)) return n
+	return fallback
+}
 
 export default function AdminPricingPage() {
-	const [menu, setMenu] = useState({ toppings: [], sizes: [], crusts: [], sauces: [], basePrice: 0, taxRate: 0 })
-	const [savedMsg, setSavedMsg] = useState('')
-	const [busy, setBusy] = useState(false)
+	const { refreshPricing } = usePricing()
+	const [pricing, setPricing] = useState(null)
+	const [toppings, setToppings] = useState([])
+	const [filter, setFilter] = useState("")
+	const [msg, setMsg] = useState("")
+	const [err, setErr] = useState("")
 
 	useEffect(() => {
-		let dead = false
-		async function load() {
+		; (async () => {
 			try {
-				const res = await fetch('/api/pricing')
-				const text = await res.text()
-
-
-
-				if (!res.ok || !text) {
-					console.error('Menu load failed', res.status, text)
-					return
-				}
-
-
-				setMenu(JSON.parse(text))
-			} catch (err) {
-				console.error('Menu load error', err)
+				setErr("")
+				const [p, t] = await Promise.all([
+					jsonFetch("/api/pricing"),
+					jsonFetch("/api/toppings"),
+				])
+				setPricing(p || null)
+				setToppings(Array.isArray(t) ? t : [])
+			} catch (e) {
+				setErr(String(e?.message || e))
 			}
-		}
-
-		load()
-		return () => { dead = true }
+		})()
 	}, [])
 
-	useEffect(() => {
-		if (!savedMsg) return
-		const t = setTimeout(() => setSavedMsg(''), 1500)
-		return () => clearTimeout(t)
-	}, [savedMsg])
-
-	function setLocalPrice(group, id, value) {
-		setMenu(prev => {
-			const next = { ...prev }
-			next[group] = (next[group] || []).map(x => x.id === id ? ({ ...x, price: value }) : x)
-			return next
+	const filteredTops = useMemo(() => {
+		const q = String(filter || "").toLowerCase().trim()
+		if (!q) return toppings
+		return toppings.filter(t => {
+			const name = String(t?.name || "").toLowerCase()
+			return name.includes(q)
 		})
+	}, [toppings, filter])
+
+	async function savePricing() {
+		try {
+			setErr("")
+			setMsg("")
+			const payload = {
+				basePrice: toNum(pricing?.basePrice, 10.99),
+				sizes: (pricing?.sizes || []).map(s => ({
+					id: String(s.id || ""),
+					label: String(s.label || ""),
+					mult: toNum(s.mult, 1),
+				})),
+				crusts: (pricing?.crusts || []).map(c => ({
+					id: String(c.id || ""),
+					label: String(c.label || ""),
+					image: String(c.image || ""),
+					price: toNum(c.price, 0),
+				})),
+				sauces: (pricing?.sauces || []).map(s => ({
+					id: String(s.id || ""),
+					label: String(s.label || ""),
+					image: String(s.image || ""),
+					price: toNum(s.price, 0),
+				})),
+
+			}
+			await jsonFetch("/api/pricing", {
+				method: "PATCH",
+				body: JSON.stringify(payload),
+			})
+			await refreshPricing()
+			setMsg("saved")
+		} catch (e) {
+			setErr(String(e?.message || e))
+		}
 	}
 
-	async function savePrice(item) {
-		setBusy(true)
+	async function saveTopping(id, patch) {
 		try {
-			let body = {}
-			if (item.entreeType) {
-				// no entrees in pricing doc, so skip or handle basePrice separately
-				throw new Error('Entrees not supported in pricing doc yet')
-			} else {
-				const nextToppings = (menu.toppings || []).map(x => x.id === item.id ? item : x)
-				body = { toppings: nextToppings }
-			}
-
-			const res = await fetch('/api/pricing', {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(body),
+			setErr("")
+			setMsg("")
+			await jsonFetch(`/api/toppings/${encodeURIComponent(id)}`, {
+				method: "PATCH",
+				body: JSON.stringify({
+					...(patch.image !== undefined ? { image: String(patch.image || "") } : {}),
+					...(patch.price !== undefined ? { price: toNum(patch.price, 0) } : {}),
+				}),
 			})
-			if (!res.ok) throw new Error(await res.text())
-			const updated = await res.json()
-			setMenu(updated)
-			setSavedMsg('Saved.')
+			await refreshPricing()
+			setMsg("saved")
 		} catch (e) {
-			setSavedMsg(e.message || 'Save failed')
-		} finally {
-			setBusy(false)
+			setErr(String(e?.message || e))
 		}
 	}
 
 
+	if (!pricing) return (
+		<div className="admin-pricing">
+			<h1>Pricing</h1>
+			{err ? <div className="error">{err}</div> : <div>loading...</div>}
+		</div>
+	)
+
 	return (
-		<div className="container">
-			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-				<h1 style={{ margin: 0 }}>Admin Pricing</h1>
-				<div style={{ display: 'flex', gap: '10px' }}>
-					<Link to="/">Home</Link>
-					<Link to="/menu">Menu</Link>
+		<div className="admin-pricing">
+			<h1>Pricing</h1>
+
+			{err && <div className="error">{err}</div>}
+			{msg && <div className="ok">{msg}</div>}
+
+			<div className="card">
+				<div className="admin-grid baseprice">
+					<div className="label">Base price</div>
+					<input
+						value={String(pricing.basePrice ?? "")}
+						onChange={e => setPricing(p => ({ ...p, basePrice: e.target.value }))}
+					/>
 				</div>
+				<h2>Sizes</h2>
+				<div className="admin-grid head sizes">
+					<div>Code</div>
+					<div>Name</div>
+					<div>Multiplier</div>
+				</div>
+
+				{(pricing.sizes || []).map((s, idx) => (
+					<div className="admin-grid sizes" key={s.id || idx}>
+						<input
+							className="small"
+							value={String(s.id || "")}
+							onChange={e => {
+								const v = e.target.value
+								setPricing(p => {
+									const next = [...(p.sizes || [])]
+									next[idx] = { ...next[idx], id: v }
+									return { ...p, sizes: next }
+								})
+							}}
+						/>
+						<input
+							value={String(s.label || "")}
+							onChange={e => {
+								const v = e.target.value
+								setPricing(p => {
+									const next = [...(p.sizes || [])]
+									next[idx] = { ...next[idx], label: v }
+									return { ...p, sizes: next }
+								})
+							}}
+						/>
+						<input
+							className="small"
+							value={String(s.mult ?? "")}
+							onChange={e => {
+								const v = e.target.value
+								setPricing(p => {
+									const next = [...(p.sizes || [])]
+									next[idx] = { ...next[idx], mult: v }
+									return { ...p, sizes: next }
+								})
+							}}
+						/>
+					</div>
+				))}
+				<div className="admin-grid head crust">
+					<div>Code</div>
+					<div>Name</div>
+					<div>Image path</div>
+					<div>Price</div>
+				</div>
+
+				<h2>Crusts</h2>
+				{(pricing.crusts || []).map((c, idx) => (
+					<div className="admin-grid crust" key={c.id || idx}>
+						<input value={String(c.id || "")} onChange={e => {
+							const v = e.target.value
+							setPricing(p => {
+								const next = [...(p.crusts || [])]
+								next[idx] = { ...next[idx], id: v }
+								return { ...p, crusts: next }
+							})
+						}} />
+
+						<input value={String(c.label || "")} onChange={e => {
+							const v = e.target.value
+							setPricing(p => {
+								const next = [...(p.crusts || [])]
+								next[idx] = { ...next[idx], label: v }
+								return { ...p, crusts: next }
+							})
+						}} />
+
+						<input value={String(c.image || "")} onChange={e => {
+							const v = e.target.value
+							setPricing(p => {
+								const next = [...(p.crusts || [])]
+								next[idx] = { ...next[idx], image: v }
+								return { ...p, crusts: next }
+							})
+						}} />
+
+						<input value={String(c.price ?? 0)} onChange={e => {
+							const v = e.target.value
+							setPricing(p => {
+								const next = [...(p.crusts || [])]
+								next[idx] = { ...next[idx], price: v }
+								return { ...p, crusts: next }
+							})
+						}} />
+					</div>
+				))}
+
+				<div className="admin-grid head sauce">
+					<div>Code</div>
+					<div>Name</div>
+					<div>Image path</div>
+					<div>Price</div>
+				</div>
+
+				<h2>Sauces</h2>
+				{(pricing.sauces || []).map((s, idx) => (
+					<div className="admin-grid sauce" key={s.id || idx}>
+						<input value={String(s.id || "")} onChange={e => {
+							const v = e.target.value
+							setPricing(p => {
+								const next = [...(p.sauces || [])]
+								next[idx] = { ...next[idx], id: v }
+								return { ...p, sauces: next }
+							})
+						}} />
+
+						<input value={String(s.label || "")} onChange={e => {
+							const v = e.target.value
+							setPricing(p => {
+								const next = [...(p.sauces || [])]
+								next[idx] = { ...next[idx], label: v }
+								return { ...p, sauces: next }
+							})
+						}} />
+
+						<input value={String(s.image || "")} onChange={e => {
+							const v = e.target.value
+							setPricing(p => {
+								const next = [...(p.sauces || [])]
+								next[idx] = { ...next[idx], image: v }
+								return { ...p, sauces: next }
+							})
+						}} />
+
+						<input value={String(s.price ?? 0)} onChange={e => {
+							const v = e.target.value
+							setPricing(p => {
+								const next = [...(p.sauces || [])]
+								next[idx] = { ...next[idx], price: v }
+								return { ...p, sauces: next }
+							})
+						}} />
+					</div>
+				))}
+
+
+				<button type="button" onClick={savePricing}>Save pricing</button>
 			</div>
 
-			<p style={{ opacity: 0.85, marginTop: 0 }}>
-				Update topping and entree prices.
-			</p>
+			<div className="card">
+				<h2>Toppings</h2>
+				<input
+					placeholder="search toppings..."
+					value={filter}
+					onChange={e => setFilter(e.target.value)}
+				/>
+				<div className="admin-grid head toppings">
+					<div>Name</div>
+					<div>Image path</div>
+					<div>Price</div>
+				</div>
 
-			<section style={{ border: '1px solid #3a3a3a', borderRadius: '12px', padding: '16px', background: 'rgba(255,255,255,0.03)' }}>
-				<h2 style={{ marginTop: 0 }}>Toppings</h2>
+				<div className="tops">
+					{filteredTops.map(t => (
+						<div className="admin-grid toppings" key={t._id || t.id}>
+							<div className="name">{t.name}</div>
 
-				<div style={{ display: 'grid', gap: '10px' }}>
-					{(menu.toppings || []).map(t => (
-						<div key={t._id} style={{ display: 'grid', gridTemplateColumns: '1fr 140px 120px', gap: '12px', alignItems: 'center' }}>
-							<div style={{ fontWeight: 600 }}>{t.name || t.label || t.id || t._id}</div>
 							<input
-								type="number"
-								step="0.01"
-								min="0"
-								value={t.price ?? 0}
-								onChange={e => setLocalPrice('toppings', t.id, Number(e.target.value))}
+								value={String(t.image || "")}
+								onChange={e => {
+									const v = e.target.value
+									setToppings(prev =>
+										prev.map(x =>
+											String(x._id || x.id) === String(t._id || t.id)
+												? { ...x, image: v }
+												: x
+										)
+									)
+								}}
+								onBlur={e =>
+									saveTopping(String(t._id || t.id), { image: e.target.value })
+								}
 							/>
-							<button type="button" disabled={busy} onClick={() => savePrice(t)}>Save</button>
+
+							<input
+								className="small"
+								value={String(t.price ?? 0)}
+								onChange={e => {
+									const v = e.target.value
+									setToppings(prev =>
+										prev.map(x =>
+											String(x._id || x.id) === String(t._id || t.id)
+												? { ...x, price: v }
+												: x
+										)
+									)
+								}}
+								onBlur={e =>
+									saveTopping(String(t._id || t.id), { price: e.target.value })
+								}
+							/>
 						</div>
 					))}
 				</div>
 
-				<hr style={{ margin: '16px 0' }} />
-
-				<h2 style={{ marginTop: 0 }}>Entrees</h2>
-
-				<div style={{ display: 'grid', gap: '10px' }}>
-					{(menu.entrees || []).map(e => (
-						<div key={e.id} style={{ display: 'grid', gridTemplateColumns: '1fr 140px 120px', gap: '12px', alignItems: 'center' }}>
-							<div style={{ fontWeight: 600 }}>{e.name}</div>
-							<input
-								type="number"
-								step="0.01"
-								min="0"
-								value={e.price ?? 0}
-								onChange={ev => setLocalPrice('pizzas', e._id, Number(ev.target.value))}
-							/>
-							<button type="button" disabled={busy} onClick={() => savePrice(e)}>Save</button>
-						</div>
-					))}
-				</div>
-
-
-				<div style={{ marginTop: '16px', opacity: 0.85 }}>
-					{savedMsg ? savedMsg : null}
-				</div>
-			</section>
+				<div className="hint">tip:price saves on blur</div>
+			</div>
 		</div>
 	)
 }

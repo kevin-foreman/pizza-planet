@@ -48,28 +48,32 @@ export const getAllToppings = asyncHandler(async (req, res) => {
   res.json(toppings)
 })
 
-export const updateTopping = asyncHandler(async (req, res) => {
-  const { id } = req.params
-  const $set = {}
+export const updateTopping=asyncHandler(async(req,res)=>{
+	const{id}=req.params
+	const $set={}
 
-  if (req.body.isAvailable !== undefined) {
-    $set.isAvailable = String(req.body.isAvailable).toLowerCase() === "true"
-  }
+	if(req.body.isAvailable!==undefined){
+		$set.isAvailable=String(req.body.isAvailable).toLowerCase()==="true"
+	}
 
-  if (req.body.price !== undefined) $set.price = Number(req.body.price) || 0
+	if(req.body.price!==undefined)$set.price=Number(req.body.price)||0
 
-  if ($set.isAvailable === true) {
-    const current = await Topping.findById(id).lean()
-    if (!current) return res.status(404).json({ message: "Topping not found" })
-    if (!current.image) {
-      return res.status(400).json({ message: "Cannot enable a topping without an image" })
-    }
-  }
+	if(req.body.image!==undefined)$set.image=String(req.body.image||"")
 
-  const topping = await Topping.findByIdAndUpdate(id, { $set }, { new: true, runValidators: true })
-  if (!topping) return res.status(404).json({ message: "Topping not found" })
-  res.json(topping)
+	if($set.isAvailable===true){
+		const current=await Topping.findById(id).lean()
+		if(!current)return res.status(404).json({message:"Topping not found"})
+		const nextImage=$set.image!==undefined?$set.image:current.image
+		if(!nextImage){
+			return res.status(400).json({message:"Cannot enable a topping without an image"})
+		}
+	}
+
+	const topping=await Topping.findByIdAndUpdate(id,{$set},{new:true,runValidators:true})
+	if(!topping)return res.status(404).json({message:"Topping not found"})
+	res.json(topping)
 })
+
 
 // CREATE /api/toppings/:id
 export const createTopping = asyncHandler(async (req, res) => {

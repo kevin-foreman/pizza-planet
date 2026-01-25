@@ -209,8 +209,6 @@ export default function PizzaShowcaseMarquee() {
                             const tops = Array.isArray(p.topIds) ? p.topIds.join(",") : ""
                             navigate(`/builder/pizza?size=${encodeURIComponent(p.sizeId || "md")}&crust=${encodeURIComponent(p.crustId)}&sauce=${encodeURIComponent(p.sauceId)}&tops=${encodeURIComponent(tops)}`)
                         }}
-
-
                     >
                         <PizzaVisualizer
                             crustId={p.crustId}
