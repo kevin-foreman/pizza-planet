@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import PizzaShowcaseMarquee from "../components/builder/PizzaShowcaseMarquee.jsx"
 
 export default function HomePage() {
 	const [orderId, setOrderId] = useState('')
@@ -32,6 +33,14 @@ export default function HomePage() {
 
 			{/* Menu Preview */}
 			<section className="menu-preview">
+
+
+
+				<section className="hero">...</section>
+
+				<PizzaShowcaseMarquee />
+
+				<section className="menu-preview">...</section>
 
 				<div className="menu-cards">
 					<div className="menu-card hover-box">

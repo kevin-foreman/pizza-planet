@@ -4,12 +4,14 @@ const { Schema, model } = mongoose
 const optionSchema = new Schema({
     id: { type: String, required: true },
     label: { type: String, required: true },
+    image: { type: String, default: "" },
 }, { _id: false })
 
 const sizeSchema = new Schema({
     id: { type: String, required: true },
     label: { type: String, required: true },
     mult: { type: Number, required: true },
+    image: { type: String, default: "" },
 }, { _id: false })
 
 const pricingSchema = new Schema({

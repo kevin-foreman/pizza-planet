@@ -1,22 +1,12 @@
-import express from 'express';
-import { deleteTopping } from "../controllers/toppingController.js";
+import express from "express"
+import { getAllToppings, createTopping, updateTopping, deleteTopping } from "../controllers/toppingController.js"
+import { uploadTopping } from "../middleware/uploadTopping.js"
 
+const router = express.Router()
 
+router.get("/", getAllToppings)
+router.post("/", uploadTopping.single("image"), createTopping)
+router.patch("/:id", updateTopping)
+router.delete("/:id", deleteTopping)
 
-import {
-  getAllToppings,
-  createTopping
-} from '../controllers/toppingController.js';
-import { updateTopping } from '../controllers/toppingController.js'
-
-const router = express.Router();
-
-// GET /api/toppings
-router.get('/', getAllToppings);
-// POST /api/toppings  (optional: for seeding/admin)
-router.post('/', createTopping);
-// PATCH /api/toppings/:id
-router.patch('/:id', updateTopping)
-// DELETE /api/toppings/:id
-router.delete("/:id", deleteTopping);
-export default router;
+export default router

@@ -144,7 +144,7 @@ export default function LoginPage() {
               disabled={busy}
               onClick={() => setMode("signup")}
             >
-              Create A new account
+              Create  new account
             </button>
           )}
         </div>

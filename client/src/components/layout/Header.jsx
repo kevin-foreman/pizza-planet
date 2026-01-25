@@ -9,12 +9,12 @@ export default function Header() {
 				</div>
 
 				<div className="site-title">
-					<img src="/logo.png" alt="Pizza Planet" className="site-logo" />
+					<img src="/Sprites/logo.webp" alt="Pizza Planet" className="site-logo" />
 				</div>
 			</div>
 
 			<div className="header-banner" aria-hidden>
-				<img src="/banner.png" alt="" />
+				<img src="/Sprites/banner.webp" alt="" />
 			</div>
 		</header>
 	)

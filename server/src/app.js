@@ -9,6 +9,7 @@ import checkoutRoutes from "./routes/checkoutRoutes.js"
 import adminUsers from "./routes/adminUsersRoutes.js"
 import orderRoutes from "./routes/orderRoutes.js"
 import shiftsRoutes from './routes/shiftsRoutes.js'
+import archivedOrdersRoutes from "./routes/archivedOrdersRoutes.js"
 
 import Pizza from "./models/Pizza.js"
 import Topping from "./models/Topping.js"
@@ -16,10 +17,23 @@ import Salad from "./models/Salad.js"
 import Calzone from "./models/Calzone.js"
 import Pricing from "./models/Pricing.js"
 
+
+
 import { notFoundHandler } from "./middleware/notFoundHandler.js"
 import { errorHandler } from "./middleware/errorHandler.js"
+/*For Image uploading for toppings*/
+import path from "path"
+import { fileURLToPath } from "url"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+// this folder should match where multer writes
+
 
 const app = express()
+
+
 
 app.use(cors({ origin: ["http://localhost:5173", "http://localhost:4000"] }))
 app.use(express.json())
@@ -29,7 +43,16 @@ app.use("/api", (req, res, next) => {
   res.set("Cache-Control", "no-store")
   next()
 })
-
+app.use("/uploads", express.static(path.join(__dirname, "uploads")))
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ message: err.message })
+  }
+  if (err) {
+    return res.status(400).json({ message: err.message || "Upload failed" })
+  }
+  next()
+})
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Pizza Planet API is running" })
 })
@@ -73,19 +96,20 @@ app.get("/api/pricing", async (req, res) => {
           basePrice: 10.99,
           taxRate: 0.082,
           sizes: [
-            { id: "sm", label: "Small", mult: 1 },
-            { id: "md", label: "Medium", mult: 1.25 },
-            { id: "lg", label: "Large", mult: 1.5 },
+            { id: "sm", label: "Small", mult: 1, image: "/Sprites/Pizza/pizza_Sauce.webp" },
+            { id: "md", label: "Medium", mult: 1.25, image: "/Sprites/Pizza/pizza_Sauce.webp" },
+            { id: "lg", label: "Large", mult: 1.5, image: "/Sprites/Pizza/pizza_Sauce.webp" },
           ],
+
           crusts: [
-            { id: "thin", label: "Thin" },
-            { id: "hand", label: "Hand Tossed" },
-            { id: "pan", label: "Pan" },
+            { id: "thin", label: "Thin", image: "/Sprites/Pizza/pizza_Thin_Base.webp" },
+            { id: "hand", label: "Hand Tossed", image: "/Sprites/Pizza/pizza_Hand_Base.webp" },
+            { id: "pan", label: "Pan", image: "/Sprites/Pizza/pizza_Pan_Base.webp" },
           ],
           sauces: [
-            { id: "red", label: "Tomato" },
-            { id: "white", label: "White Sauce" },
-            { id: "bbq", label: "BBQ" },
+            { id: "red", label: "Tomato", image: "/Sprites/Pizza/pizza_Red_Sauce.webp" },
+            { id: "white", label: "White Sauce", image: "/Sprites/Pizza/pizza_White_Sauce.webp" },
+            { id: "bbq", label: "BBQ", image: "/Sprites/Pizza/pizza_BBQ_Sauce.webp" },
           ],
         },
       },
@@ -129,6 +153,7 @@ app.use("/api/toppings", toppingRoutes)
 app.use("/api/checkout", checkoutRoutes)
 app.use('/api/shifts', shiftsRoutes)
 app.use("/api/staff/orders", orderRoutes)
+app.use("/api/archived_orders", archivedOrdersRoutes)
 
 app.use(notFoundHandler)
 app.use(errorHandler)

@@ -66,7 +66,8 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
     const isItemCanceled = !!k.canceledAt
     const isFinished = isItemDone || isItemCanceled
 
-    const toppingIndex = Number.isFinite(k.toppingIndex) ? k.toppingIndex : 0
+    const toppingIndex = toInt(k.toppingIndex) ?? 0
+
     const toppingDone = Array.isArray(k.toppingDone) ? k.toppingDone : []
     const next = toppings[toppingIndex] || null
     const allDone = toppings.length === 0 ? true : toppingIndex >= toppings.length
@@ -94,15 +95,16 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
     }
 
 
-    function canGoBack() {
-        if (!isInProgress) return false
-        const idx = Number(k.toppingIndex || 0)
-        if (idx <= 0) return false
-        // one back per index (per “step”)
-        if (Number(k.lastBackAtIndex || -1) === idx) return false
-        return true
+    function toInt(v) {
+        const n = parseInt(String(v), 10)
+        return Number.isFinite(n) ? n : null
     }
 
+    function canGoBack() {
+        if (!isInProgress) return false
+        const idx = toInt(k.toppingIndex) ?? 0
+        return idx > 0
+    }
 
     function canConfirmTopping() {
         if (!isInProgress || ovenConfirmed || allDone || !next) return false
@@ -235,40 +237,38 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
 
         if (kind === "restart") {
             await patch({
-                status: "RECEIVED",
+                status: "IN_PROGRESS",
                 kitchen: {
-                    startedAt: null,
-                    startedBy: null,
+                    ...k,
+                    startedAt: k.startedAt || new Date().toISOString(),
                     toppingIndex: 0,
                     toppingDone: [],
-                    lastBackAtIndex: -1,
-                    restartCount: (k.restartCount || 0) + 1,
                     ovenConfirmedAt: null,
                     cookedConfirmedAt: null,
-                    backUsed: false,
+                    restartCount: (k.restartCount || 0) + 1,
                 },
             })
             return
         }
 
 
+
         if (kind === "back") {
             const nextK = { ...k }
 
-            const cur = Number(nextK.toppingIndex || 0)
+            const cur = toInt(nextK.toppingIndex) ?? 0
             if (cur <= 0) return
 
-            // allow 1 back per current index
-            if (Number(nextK.lastBackAtIndex || -1) === cur) return
-
-            nextK.lastBackAtIndex = cur
-
             const idx = Math.max(0, cur - 1)
+
             const done = Array.isArray(nextK.toppingDone) ? nextK.toppingDone.slice() : []
             done[idx] = false
+
             nextK.toppingIndex = idx
             nextK.toppingDone = done
 
+            // no lastBackAtIndex at all
+            delete nextK.lastBackAtIndex
             delete nextK.backUsed
 
             await patch({ kitchen: nextK })
@@ -396,46 +396,53 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
 
                 {/* workflow buttons */}
                 {isInProgress && !showMarkReadyOnly && (
-                    <div className="order-actions-left">
-                        {isInProgress && order.notes && !instructionsConfirmed && (
-                            <button className="btn btn-success" onClick={onConfirmInstructions}>
-                                Confirm Instructions Read
+                    <div className="order-actions-row">
+                        <div className="order-actions-confirms">
+                            {canConfirmInOven() && (
+                                <button className="btn btn-success" onClick={onConfirmInOven}>
+                                    Confirm In Oven
+                                </button>
+                            )}
+
+                            {canConfirmTopping() && (
+                                <button className="btn btn-success" onClick={onConfirmTopping}>
+                                    Confirm Next Topping
+                                </button>
+                            )}
+
+                            {canGoBack() && (
+                                <button className="btn btn-success" onClick={onGoBackOne}>
+                                    Go Back One Step
+                                </button>
+                            )}
+
+                            {isInProgress && order.notes && !instructionsConfirmed && (
+                                <button className="btn btn-success" onClick={onConfirmInstructions}>
+                                    Confirm Instructions Read
+                                </button>
+                            )}
+
+                            {canConfirmCooked() && (
+                                <button className="btn btn-success" onClick={onConfirmCooked}>
+                                    Confirm Cooked
+                                </button>
+                            )}
+                        </div>
+
+
+                        <div className="order-actions-danger">
+                            <button className="btn btn-ghost" onClick={onRestart}>
+                                Restart
                             </button>
-                        )}
 
-                        {canConfirmTopping() && (
-                            <button className="btn btn-success" onClick={onConfirmTopping}>
-                                Confirm Next Topping
+                            <button className="btn btn-danger" onClick={onCancel}>
+                                Cancel
                             </button>
-                        )}
-
-                        {canConfirmInOven() && (
-                            <button className="btn btn-success" onClick={onConfirmInOven}>
-                                Confirm In Oven
-                            </button>
-                        )}
-
-                        {canConfirmCooked() && (
-                            <button className="btn btn-success" onClick={onConfirmCooked}>
-                                Confirm Cooked
-                            </button>
-                        )}
-
-                        {canGoBack() && (
-                            <button className="btn" onClick={onGoBackOne}>
-                                Go Back One Step
-                            </button>
-                        )}
-
-                        <button className="btn btn-ghost" onClick={onRestart}>
-                            Restart
-                        </button>
-
-                        <button className="btn btn-danger" onClick={onCancel}>
-                            Cancel
-                        </button>
+                        </div>
                     </div>
                 )}
+
+
             </div>
 
             <ConfirmModal open={confirm.open} title={confirm.title} text={confirm.text} onCancel={closeConfirm} onConfirm={handleConfirm} />

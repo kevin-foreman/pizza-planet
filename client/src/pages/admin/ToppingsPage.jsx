@@ -4,6 +4,8 @@ import { useLocation } from "react-router-dom"
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000"
 
 export default function ToppingsPage() {
+    const [file, setFile] = useState(null)
+
     const [toppings, setToppings] = useState([])
     const [busy, setBusy] = useState(false)
     const [error, setError] = useState("")
@@ -55,13 +57,34 @@ export default function ToppingsPage() {
         setBusy(true)
         setError("")
         try {
-            const payload = { name: form.name.trim(), type: form.type, price: Number(form.price) || 0, isPremium: !!form.isPremium, isAvailable: !!form.isAvailable }
-            const r = await fetch(`${API}/api/toppings`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+            const fd = new FormData()
+            fd.append("name", form.name.trim())
+            fd.append("type", form.type)
+            fd.append("price", String(Number(form.price) || 0))
+            fd.append("isPremium", String(!!form.isPremium))
+            fd.append("isAvailable", String(!!form.isAvailable))
+            if (file) fd.append("image", file)
+
+            const r = await fetch(`${API}/api/toppings`, {
+                method: "POST",
+                body: fd,
+            })
+
             if (!r.ok) {
-                const text = await r.text().catch(() => "")
-                throw new Error(text || `Failed to add topping (${r.status})`)
+                let msg = `Failed to add topping (${r.status})`
+                try {
+                    const j = await r.json()
+                    msg = j.message || j.error || msg
+                } catch {
+                    const text = await r.text().catch(() => "")
+                    if (text) msg = text
+                }
+                throw new Error(msg)
             }
+
+
             setForm({ name: "", type: "other", price: "", isPremium: false, isAvailable: true })
+            setFile(null)
             await load()
         } catch (e) {
             setError(String(e.message || "Failed to add topping"))
@@ -69,6 +92,7 @@ export default function ToppingsPage() {
             setBusy(false)
         }
     }
+
 
     async function setAvailable(id, isAvailable) {
         setBusy(true)
@@ -150,6 +174,14 @@ export default function ToppingsPage() {
                         <div className="row">
                             <label>Name</label>
                             <input name="name" value={form.name} onChange={onChange} required />
+                        </div>
+                        <div className="row">
+                            <label>Image</label>
+                            <input
+                                type="file"
+                                accept="image/png,image/webp,image/jpeg"
+                                onChange={e => setFile(e.target.files?.[0] || null)}
+                            />
                         </div>
 
                         <div className="row">

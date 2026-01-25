@@ -36,9 +36,8 @@ export function PricingProvider({ children }) {
                 id: String(t._id),
                 label: t.name,
                 price: Number(t.price || 0),
+                image: t.image || "",
             }))
-
-
 
             setPricing(pricingData)
             setToppings(mergedToppings)

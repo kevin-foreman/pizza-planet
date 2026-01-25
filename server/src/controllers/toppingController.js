@@ -1,13 +1,15 @@
 import Topping from '../models/Topping.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
+import fs from "fs"
+import path from "path"
 
 export const DEFAULT_TOPPINGS = [
-  { id: "pep", name: "Pepperoni", type: "meat", price: 1.25, isAvailable: true, isPremium: true },
-  { id: "msh", name: "Mushrooms", type: "veggie", price: 0.85, isAvailable: true, isPremium: false },
-  { id: "olv", name: "Olives", type: "veggie", price: 0.85, isAvailable: true, isPremium: false },
-  { id: "on", name: "Onions", type: "veggie", price: 0.65, isAvailable: true, isPremium: false },
-  { id: "gp", name: "Green Peppers", type: "veggie", price: 0.75, isAvailable: true, isPremium: false },
-  { id: "ham", name: "Ham", type: "meat", price: 1.35, isAvailable: true, isPremium: true },
+  { id: "pep", name: "Pepperoni", type: "meat", price: 1.25, isAvailable: true, isPremium: true, image: "/Sprites/Toppings/Pepperoni.webp" },
+  { id: "msh", name: "Mushrooms", type: "veggie", price: 0.85, isAvailable: true, isPremium: false, image: "/Sprites/Toppings/Mushrooms.webp" },
+  { id: "olv", name: "Olives", type: "veggie", price: 0.85, isAvailable: true, isPremium: false, image: "/Sprites/Toppings/Olives.webp" },
+  { id: "on", name: "Onions", type: "veggie", price: 0.65, isAvailable: true, isPremium: false, image: "/Sprites/Toppings/Onions.webp" },
+  { id: "gp", name: "Green Peppers", type: "veggie", price: 0.75, isAvailable: true, isPremium: false, image: "/Sprites/Toppings/GreenPeppers.webp" },
+  { id: "ham", name: "Ham", type: "meat", price: 1.35, isAvailable: true, isPremium: true, image: "/Sprites/Toppings/Ham.webp" },
 ]
 function slugify(s) {
   return String(s || "")
@@ -63,12 +65,32 @@ export const createTopping = asyncHandler(async (req, res) => {
   let { id, name, type, price, isPremium, isAvailable } = req.body
 
   if (!name) {
-    return res.status(400).json({ message: 'Topping name is required' })
+    return res.status(400).json({ message: "Topping name is required" })
   }
 
   if (!id) {
     id = await uniqueIdFromName(name)
   }
+
+  let image = ""
+
+  if (req.file) {
+    // slugify topping name
+    const slug = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "")
+
+    const newFilename = `${slug}.webp`
+
+    const oldPath = path.join(process.cwd(), "src/uploads/toppings", req.file.filename)
+    const newPath = path.join(process.cwd(), "src/uploads/toppings", newFilename)
+
+    fs.renameSync(oldPath, newPath)
+
+    image = `/uploads/toppings/${newFilename}`
+  }
+
 
   try {
     const topping = await Topping.create({
@@ -77,19 +99,30 @@ export const createTopping = asyncHandler(async (req, res) => {
       type,
       price,
       isPremium,
-      isAvailable
+      isAvailable,
+      image,
     })
 
     res.status(201).json(topping)
   } catch (err) {
+    // DUPLICATE KEY (id or name)
     if (err.code === 11000) {
+      // clean up uploaded file
+      if (req.file) {
+        fs.unlink(
+          path.join("src/uploads/toppings", req.file.filename),
+          () => { }
+        )
+      }
+
       return res.status(400).json({
-        message: `There is already a topping with this id or name: ${id} / ${name}`
+        message: `There is already a topping with this id or name: ${id} / ${name}`,
       })
     }
     throw err
   }
 })
+
 
 
 // DELETE /api/toppings/:id
