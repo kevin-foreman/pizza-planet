@@ -105,6 +105,7 @@ export default function OrderTrackPage() {
                                             <div className="track-meta">
                                                 <div className="muted">Toppings progress</div>
                                                 <div className="mono">{completed} / {total} toppings added</div>
+
                                             </div>
 
                                             {nextId ? (
@@ -113,7 +114,7 @@ export default function OrderTrackPage() {
                                                 </div>
                                             ) : (
                                                 <div className="track-meta">
-                                                    <div className="mono">All toppings added, waiting to go in the oven.</div>
+                                                    <div className="mono">All toppings added waiting to go in the oven.</div>
                                                 </div>
                                             )}
 
