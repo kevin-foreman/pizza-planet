@@ -26,6 +26,13 @@ function uiStatus(s) {
 }
 
 
+function normTid(x) {
+    if (x && typeof x === "object") {
+        return String(x._id || x.id || x.code || x.slug || x.toppingId || "")
+    }
+    return String(x || "")
+}
+
 function flattenToppings(order, toppingNameById) {
     const out = []
     for (const it of (order.items || [])) {
@@ -35,13 +42,16 @@ function flattenToppings(order, toppingNameById) {
             (Array.isArray(it?.config?.toppings) && it.config.toppings) ||
             []
         for (const t of tops) {
-            const key = String(t)
-            const nice = toppingNameById?.get(key) || key
+            const key = normTid(t)
+            if (!key) continue
+            const nice = toppingNameById?.get(key) || "[Unknown/Removed topping]"
+
             out.push({ label: nice, source: it.type || it.name || "Item" })
         }
     }
     return out
 }
+
 
 
 
@@ -68,9 +78,39 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
 
     const toppingIndex = toInt(k.toppingIndex) ?? 0
 
-    const toppingDone = Array.isArray(k.toppingDone) ? k.toppingDone : []
-    const next = toppings[toppingIndex] || null
-    const allDone = toppings.length === 0 ? true : toppingIndex >= toppings.length
+    const toppingDone = useMemo(() => {
+        const raw = Array.isArray(k.toppingDone) ? k.toppingDone : []
+        const out = new Array(toppings.length).fill(false)
+        for (let i = 0; i < toppings.length; i++)out[i] = !!raw[i]
+        return out
+    }, [k.toppingDone, toppings.length])
+
+    const doneCount = useMemo(() => {
+        let n = 0
+        for (let i = 0; i < toppings.length; i++)if (!!toppingDone[i]) n++
+        return n
+    }, [toppings.length, toppingDone])
+
+    const allDone = toppings.length === 0 ? true : doneCount === toppings.length
+
+    const nextIndex = useMemo(() => {
+        for (let i = 0; i < toppings.length; i++) {
+            if (!toppingDone[i]) return i
+        }
+        return toppings.length
+    }, [toppings.length, toppingDone])
+
+    const next = toppings[nextIndex] || null
+
+    useEffect(() => {
+        if (!allDone) return
+        const idx = Number.isFinite(Number(k.toppingIndex)) ? Number(k.toppingIndex) : 0
+        if (idx < toppings.length) {
+            patch({ kitchen: { toppingIndex: toppings.length } })
+        }
+    }, [allDone, toppings.length])
+
+
 
     // status can be API-ui ("RECEIVED") or db ("pending")
     const st = String(order.status || "")
@@ -91,8 +131,11 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
 
     async function patch(patchObj) {
         const idx = Number.isFinite(order.itemIndex) ? order.itemIndex : 0
-        if (typeof onPatch === "function") return await onPatch(order.orderId || order._id, { ...patchObj, itemIndex: idx })
+        if (typeof onPatch !== "function") return
+        return await onPatch(order.orderId || order._id, { ...patchObj, itemIndex: idx })
     }
+
+
 
 
     function toInt(v) {
@@ -102,19 +145,23 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
 
     function canGoBack() {
         if (!isInProgress) return false
+        if (!!k.backUsed) return false
         const idx = toInt(k.toppingIndex) ?? 0
         return idx > 0
     }
 
     function canConfirmTopping() {
-        if (!isInProgress || ovenConfirmed || allDone || !next) return false
+        if (!isInProgress || ovenConfirmed || allDone || next == null) return false
         if (order.notes && !instructionsConfirmed) return false
         return true
     }
 
+
+
     function canConfirmInOven() {
         return isInProgress && !ovenConfirmed && allDone
     }
+
     function canConfirmCooked() {
         return isInProgress && ovenConfirmed && !cookedConfirmed
     }
@@ -252,55 +299,64 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
         }
 
 
-
         if (kind === "back") {
-            const nextK = { ...k }
-
-            const cur = toInt(nextK.toppingIndex) ?? 0
-            if (cur <= 0) return
-
-            const idx = Math.max(0, cur - 1)
-
-            const done = Array.isArray(nextK.toppingDone) ? nextK.toppingDone.slice() : []
+            const idx = Math.max(0, nextIndex - 1)
+            const done = toppingDone.slice()
             done[idx] = false
 
-            nextK.toppingIndex = idx
-            nextK.toppingDone = done
-
-            // no lastBackAtIndex at all
-            delete nextK.lastBackAtIndex
-            delete nextK.backUsed
-
-            await patch({ kitchen: nextK })
-            return
-        }
-
-
-        if (kind === "topping") {
-            const idx = toppingIndex
-            const done = Array.isArray(toppingDone) ? toppingDone.slice() : []
-            done[idx] = true
             await patch({
                 kitchen: {
-                    ...k,
                     toppingDone: done,
-                    toppingIndex: idx + 1,
-                    lastBackAtIndex: k.lastBackAtIndex,
+                    toppingIndex: idx,
+                    ovenConfirmedAt: null,
+                    cookedConfirmedAt: null,
+                    backUsed: true,
+                    lastBackAtIndex: idx,
                 },
             })
             return
         }
 
 
+
+        if (kind === "topping") {
+            const idx = nextIndex
+            const done = toppingDone.slice()
+            done[idx] = true
+            await patch({
+                kitchen: {
+                    ...k,
+                    toppingDone: done,
+                    toppingIndex: idx + 1,
+                    ovenConfirmedAt: null,
+                    cookedConfirmedAt: null,
+                    backUsed: false,
+                },
+            })
+            return
+        }
+
+
+
+
         if (kind === "oven") {
-            await patch({ kitchen: { ...k, ovenConfirmedAt: new Date().toISOString() } })
+            await patch({
+                kitchen: {
+                    ovenConfirmedAt: new Date().toISOString(),
+                },
+            })
             return
         }
 
         if (kind === "cooked") {
-            await patch({ kitchen: { ...k, cookedConfirmedAt: new Date().toISOString() } })
+            await patch({
+                kitchen: {
+                    cookedConfirmedAt: new Date().toISOString(),
+                },
+            })
             return
         }
+
         if (kind === "done") {
             await patch({ status: "COMPLETED", kitchen: { ...k } })
             return
@@ -313,7 +369,7 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
             <div className="order-top">
                 <div className="order-left">
                     <div className="order-id">Order #{order.displayNumber || "?"}{order.subLabel || ""}</div>
-                    <div className="order-name">Customer name: {order.customerName || "Guest"}</div>
+                    <div className="order-name">Customer notes: {order.customerName || "Guest"}</div>
                     <div className="order-time">
                         <span>Time ordered: {order.timeLabel || ""}</span>
                         <span className="dot">•</span>
@@ -373,6 +429,9 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
                         </div>
                     </>
                 )}
+            </div>
+            <div className="muted" style={{ fontSize: 12 }}>
+                done:{doneCount}/{toppings.length} allDone:{String(allDone)} oven:{String(ovenConfirmed)} cooked:{String(cookedConfirmed)}
             </div>
 
             <div className="order-actions">

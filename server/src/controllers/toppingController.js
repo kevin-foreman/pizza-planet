@@ -42,12 +42,13 @@ export const getAllToppings = asyncHandler(async (req, res) => {
     }
   }
 
-  const showAll = req.query.all === "1"
+  const showAll = req.query.all === "1" || req.query.includeDisabled === "true"
   const filter = showAll ? {} : { isAvailable: true }
 
   const toppings = await Topping.find(filter).sort({ name: 1 })
   res.json(toppings)
 })
+
 
 export const updateTopping = asyncHandler(async (req, res) => {
   const { id } = req.params

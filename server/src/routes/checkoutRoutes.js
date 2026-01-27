@@ -1,10 +1,12 @@
 import express from "express"
 import Order from "../models/Order.js"
 import Pricing from "../models/Pricing.js"
+import { requireAuth } from "../middleware/authMiddleware.js"
 
 const router = express.Router()
 
-router.post("/", async (req, res) => {
+router.post("/", requireAuth, async (req, res) => {
+
     try {
         const { customer, order } = req.body || {}
 
@@ -22,6 +24,8 @@ router.post("/", async (req, res) => {
         const total = +(subtotal + tip + tax).toFixed(2)
 
         const doc = await Order.create({
+            userId: req.user.id,
+
             customerName: (customer?.name || "Guest").trim(),
             notes: (order.notes || "").trim(),
             size: order.size || "Medium",
@@ -32,8 +36,8 @@ router.post("/", async (req, res) => {
                 name: i.name || i.label || i.title || "Item",
                 qty: Number(i.qty || 1),
                 unitPrice: Number(i.unitPrice || 0),
-                display: i.display || null,
-                config: i.config || null,
+                display: i.display || {},
+                config: i.config || {},
                 notes: (i.notes || "").trim(),
             })),
             subtotal,
@@ -41,6 +45,8 @@ router.post("/", async (req, res) => {
             tax,
             total,
             status: "RECEIVED",
+            kitchen: { items: order.items.map(() => ({ toppingIndex: 0, toppingDone: [] })) },
+
         })
 
         return res.status(200).json({ ok: true, orderId: String(doc._id) })

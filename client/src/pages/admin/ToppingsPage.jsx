@@ -23,7 +23,7 @@ export default function ToppingsPage() {
     async function load() {
         try {
             setError("")
-            const r = await fetch(`${API}/api/toppings?all=1&ts=${Date.now()}`, {
+            const r = await fetch(`${API}/api/toppings?includeDisabled=true&ts=${Date.now()}`, {
                 cache: "no-store",
                 headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" },
             })

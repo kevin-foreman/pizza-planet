@@ -130,11 +130,13 @@ async function maybeArchive(order, req, res) {
 
     await ArchivedOrder.create({
         ...obj,
+        userId: obj.userId || null,
         status: "completed",
         originalOrderId: originalId,
         archivedAt: new Date(),
-        archivedBy: req.user?._id || null,
+        archivedBy: req.user?.id || null,
     })
+
 
     await Order.deleteOne({ _id: originalId })
     return res.json({ moved: true })
@@ -166,8 +168,8 @@ router.get("/", requireAuth, requireStaff, async (req, res) => {
 })
 
 /* =========================
-   PATCH /api/staff/orders/:id
-   body: { itemIndex, status?, kitchen? }
+    PATCH /api/staff/orders/:id
+    body: { itemIndex, status?, kitchen? }
 ========================= */
 router.patch("/:id", requireAuth, requireStaff, async (req, res) => {
     try {
@@ -179,7 +181,7 @@ router.patch("/:id", requireAuth, requireStaff, async (req, res) => {
 
         ensureKitchen(order)
 
-        const itemIndex = Number(patch.itemIndex || 0)
+        const itemIndex = Number.isFinite(Number(patch.itemIndex)) ? Number(patch.itemIndex) : 0
         const n = Array.isArray(order.items) ? order.items.length : 0
         if (itemIndex < 0 || itemIndex >= n) return res.status(400).json({ message: "Invalid itemIndex" })
 
@@ -209,7 +211,7 @@ router.patch("/:id", requireAuth, requireStaff, async (req, res) => {
 
             if (next === "IN_PROGRESS") {
                 if (!ki.startedAt) ki.startedAt = new Date()
-                if (!ki.startedBy) ki.startedBy = req.user?._id || null
+                if (!ki.startedBy) ki.startedBy = req.user?.id || null
             }
 
             if (next === "COMPLETED") {
@@ -220,7 +222,7 @@ router.patch("/:id", requireAuth, requireStaff, async (req, res) => {
 
             if (next === "CANCELED") {
                 ki.canceledAt = new Date()
-                ki.canceledBy = req.user?._id || null
+                ki.canceledBy = req.user?.id || null
                 ki.doneAt = null
             }
         }
@@ -229,15 +231,59 @@ router.patch("/:id", requireAuth, requireStaff, async (req, res) => {
         if (patch.kitchen && typeof patch.kitchen === "object") {
             const k = patch.kitchen
 
+            // cooked already confirmed OR this request is confirming cooked
+            const cookedNow =
+                !!ki.cookedConfirmedAt &&
+                k.cookedConfirmedAt !== null
+            // explicit un-confirm
+            if (k.cookedConfirmedAt === null) {
+                ki.cookedConfirmedAt = null
+                ki.ovenConfirmedAt = null
+            }
+            // non-navigation fields
             if (k.startedAt !== undefined) ki.startedAt = k.startedAt ? new Date(k.startedAt) : null
             if (k.startedBy !== undefined) ki.startedBy = k.startedBy || null
             if (k.restartCount !== undefined) ki.restartCount = Number(k.restartCount || 0)
-            if (k.toppingIndex !== undefined) ki.toppingIndex = Number(k.toppingIndex || 0)
             if (k.toppingDone !== undefined) ki.toppingDone = Array.isArray(k.toppingDone) ? k.toppingDone.map(v => !!v) : []
-            if (k.lastBackAtIndex !== undefined) ki.lastBackAtIndex = Number(k.lastBackAtIndex || -1)
             if (k.ovenConfirmedAt !== undefined) ki.ovenConfirmedAt = k.ovenConfirmedAt ? new Date(k.ovenConfirmedAt) : null
-            if (k.cookedConfirmedAt !== undefined) ki.cookedConfirmedAt = k.cookedConfirmedAt ? new Date(k.cookedConfirmedAt) : null
-            if (k.backUsed !== undefined) ki.backUsed = !!k.backUsed
+
+            // if going BACK a step (and not cooked), clear oven/cooked so UI shows oven again
+            if (!cookedNow && k.toppingIndex !== undefined) {
+                const reqNext = Number(k.toppingIndex || 0)
+                const prev = Number(ki.toppingIndex || 0)
+
+                // max index based on toppingDone length (fallback 0)
+                const max = Math.max(0, (Array.isArray(ki.toppingDone) ? ki.toppingDone.length : 0) - 1)
+
+                // only allow moving 1 step forward per PATCH, and never past max
+                let next = reqNext
+                if (next > prev + 1) next = prev + 1
+                if (next > max) next = max
+                if (next < 0) next = 0
+
+                // if staff goes back, undo oven/cooked confirmations
+                if (next < prev) {
+                    ki.ovenConfirmedAt = null
+                    ki.cookedConfirmedAt = null
+                    ki.lastBackAtIndex = -1
+                    ki.backUsed = false
+                }
+
+                ki.toppingIndex = next
+            }
+
+
+            if (!cookedNow && k.lastBackAtIndex !== undefined) ki.lastBackAtIndex = Number(k.lastBackAtIndex || -1)
+            if (!cookedNow && k.backUsed !== undefined) ki.backUsed = !!k.backUsed
+
+            // cooked confirm LAST: lock nav + index
+            if (k.cookedConfirmedAt !== undefined) {
+                ki.cookedConfirmedAt = k.cookedConfirmedAt ? new Date(k.cookedConfirmedAt) : null
+                const max = Math.max(0, (ki.toppingDone?.length || 0))
+                ki.toppingIndex = max
+
+                ki.lastBackAtIndex = -1
+            }
         }
 
         order.kitchen.items[itemIndex] = ki

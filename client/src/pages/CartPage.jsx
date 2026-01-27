@@ -1,4 +1,5 @@
-import React, { useMemo } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
+
 import { Link, useNavigate } from "react-router-dom"
 import { useCart } from "../context/CartContext.jsx"
 import { usePricing } from "../context/PricingContext.jsx"
@@ -12,21 +13,73 @@ export default function CartPage() {
 	const tax = useMemo(() => +(Number(subtotal || 0) * taxRate).toFixed(2), [subtotal, taxRate])
 	const total = useMemo(() => +(Number(subtotal || 0) + Number(tipAmount || 0) + tax).toFixed(2), [subtotal, tipAmount, tax])
 
-	function setTip(value) {
-		const n = Number(value) || 0
-		const clean = Math.max(0, Math.round(n * 100) / 100)
-		setTipAmount(clean)
+	const holdRef = useRef(null)
+	const [tipText, setTipText] = useState(String(tipAmount ?? "0.00"))
+	const tipTextRef = useRef("0.00")
+
+	useEffect(() => {
+		tipTextRef.current = tipText
+	}, [tipText])
+
+	useEffect(() => {
+		setTipText(String(Number(tipAmount || 0).toFixed(2)))
+	}, [tipAmount])
+
+	function stopHold() {
+		if (holdRef.current) {
+			clearInterval(holdRef.current)
+			holdRef.current = null
+		}
 	}
 
+	useEffect(() => () => stopHold(), [])
+
+	function startHold(fn) {
+		stopHold()
+		fn()
+		holdRef.current = setInterval(() => {
+			fn()
+		}, 120)
+	}
+
+
+	function parseTip(v) {
+		const n = Number(v)
+		return Number.isFinite(n) && n >= 0 ? n : 0
+	}
+
+	function setTip(value) {
+		let s = String(value ?? "")
+		s = s.replace(/[^\d.]/g, "")
+		const p = s.split(".")
+		if (p.length > 2) s = p[0] + "." + p.slice(1).join("")
+		if (p[1]) s = p[0] + "." + p[1].slice(0, 2)
+		if (s === "") s = "0"
+		setTipText(s)
+		const n = Number(s)
+		setTipAmount(Number.isFinite(n) ? Math.max(0, Math.round(n * 100) / 100) : 0)
+	}
+
+	function inc() {
+		const n = parseTip(tipTextRef.current)
+		setTip((n + 0.01).toFixed(2))
+	}
+
+	function dec() {
+		const n = parseTip(tipTextRef.current)
+		setTip(Math.max(0, n - 0.01).toFixed(2))
+	}
+
+
 	function tipFromPct(pct) {
-		const t = Math.round(Number(subtotal || 0) * pct * 100) / 100
-		setTip(t)
+		const base = Number(subtotal || 0)
+		const tip = +(base * Number(pct || 0)).toFixed(2)
+		setTip(tip.toFixed(2))
 	}
 
 	function goCheckout() {
 		navigate("/checkout")
 	}
-
 	return (
 		<div className="page">
 			<div className="page-header">
@@ -92,7 +145,7 @@ export default function CartPage() {
 							</div>
 
 							<div style={{ marginTop: "14px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
-								<button type="button" className="btn-ghost" onClick={clearCart}>Clear Cart</button>
+								<button type="button" className="btn-tip" onClick={clearCart}>Clear Cart</button>
 								<Link to="/builder/pizza">Build Another Pizza</Link>
 								<Link to="/menu">Menu</Link>
 							</div>
@@ -109,42 +162,97 @@ export default function CartPage() {
 							<div style={{ marginTop: "12px" }}>
 								<div style={{ fontWeight: 700, marginBottom: "8px" }}>Tip</div>
 
-								<div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-									<button type="button" className="btn-ghost" onClick={() => setTip(0)}>No tip</button>
-									<button type="button" className="btn-ghost" onClick={() => tipFromPct(.10)}>10%</button>
-									<button type="button" className="btn-ghost" onClick={() => tipFromPct(.15)}>15%</button>
-									<button type="button" className="btn-ghost" onClick={() => tipFromPct(.20)}>20%</button>
+								<div className="tip-presets">
+									<button type="button" className="btn-tip" onClick={() => setTip("0.00")}>No tip</button>
+									<button type="button" className="btn-tip" onClick={() => tipFromPct(.10)}>10%</button>
+									<button type="button" className="btn-tip" onClick={() => tipFromPct(.15)}>15%</button>
+									<button type="button" className="btn-tip" onClick={() => tipFromPct(.20)}>20%</button>
 								</div>
 
-								<div style={{ marginTop: "10px" }}>
-									<label style={{ display: "block", fontWeight: 600, marginBottom: "6px", opacity: .9 }}>Custom tip ($)</label>
-									<input type="number" min="0" step=".01" value={tipAmount} onChange={e => setTip(e.target.value)} />
-								</div>
+								<div className="tip-input">
+									<input
+										type="text"
+										inputMode="decimal"
+										value={tipText}
+										onChange={e => setTip(e.target.value)}
+										onBlur={() => {
+											const n = parseTip(tipText)
+											setTip(n.toFixed(2))
+										}}
+									/>
 
-								<div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px", opacity: .95 }}>
-									<span>Tip amount</span>
-									<span>${Number(tipAmount || 0).toFixed(2)}</span>
-								</div>
+									<div className="tip-arrows">
 
-								<div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px", opacity: .95 }}>
-									<span>Tax ({(taxRate * 100).toFixed(2)}%)</span>
-									<span>${tax.toFixed(2)}</span>
+										<button
+											type="button"
+											style={{ touchAction: "none" }}
+											onPointerDown={e => {
+												e.preventDefault()
+												e.currentTarget.setPointerCapture(e.pointerId)
+												startHold(inc)
+											}}
+											onPointerUp={stopHold}
+											onPointerCancel={stopHold}
+											onLostPointerCapture={stopHold}
+										>
+											▲
+										</button>
+
+										<button
+											type="button"
+											style={{ touchAction: "none" }}
+											onPointerDown={e => {
+												e.preventDefault()
+												e.currentTarget.setPointerCapture(e.pointerId)
+												startHold(dec)
+											}}
+											onPointerUp={stopHold}
+											onPointerCancel={stopHold}
+											onLostPointerCapture={stopHold}
+										>
+											▼
+										</button>
+
+									</div>
+
 								</div>
+							</div>
+
+							<div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px", opacity: .95 }}>
+								<span>Tip amount</span>
+								<span>${Number(tipAmount || 0).toFixed(2)}</span>
+							</div>
+
+							<div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px", opacity: .95 }}>
+								<span>Tax ({(taxRate * 100).toFixed(2)}%)</span>
+								<span>${tax.toFixed(2)}</span>
 							</div>
 
 							<hr style={{ margin: "12px 0" }} />
 
 							<div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: "18px" }}>
 								<span>Total</span>
-								<span>${total.toFixed(2)}</span>
+								<span>{"$" + total.toFixed(2)}</span>
+
 							</div>
 
-							<button type="button" onClick={goCheckout} style={{ width: "100%", marginTop: "12px", padding: "10px" }}>Checkout</button>
-
+							<button
+								type="button"
+								onClick={goCheckout}
+								style={{
+									width: "100%",
+									marginTop: "12px",
+									padding: "10px",
+									background: "#FFF2CC",
+								}}
+							>
+								Checkout
+							</button>
 						</aside>
-					</div>
-				</div>
-			)}
-		</div>
+					</div >
+				</div >
+			)
+			}
+		</div >
 	)
 }

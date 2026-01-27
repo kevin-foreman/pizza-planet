@@ -1053,10 +1053,79 @@ section {
 	gap: 6px;
 }
 
-/* Chrome / Edge / Safari arrows in cart */
+/* Cart Tip CSS */
 .cart-qty input[type="number"]::-webkit-inner-spin-button {
 	width: 20px;
 }
+
+.tip-input {
+	margin-top: 10px;
+	position: relative;
+	width: 100%;
+}
+
+.tip-input input {
+	width: 100%;
+	padding-right: 34px;
+	/* more room for arrows */
+	height: 40px;
+	box-sizing: border-box;
+}
+
+.tip-arrows {
+	position: absolute;
+	right: 6px;
+	top: 4px;
+	bottom: 4px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	/* spreads arrows */
+}
+
+.tip-arrows button {
+	all: unset;
+	cursor: pointer;
+	text-align: center;
+	font-size: 11px;
+	line-height: 1;
+	padding: 2px 4px;
+	opacity: .6;
+}
+
+.tip-arrows button:last-child {
+	margin-top: 4px;
+	/* pulls bottom arrow down */
+}
+
+.tip-arrows button:hover {
+	opacity: 1;
+}
+
+.tip-presets {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 8px;
+	width: 100%;
+}
+
+@media(max-width:480px) {
+	.tip-presets {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+.btn-tip {
+	background: #FFF2CC;
+	color: var(--text-color);
+	font-family: var(--apple-font);
+	font-size: 15px;
+	font-weight: 600;
+	border-radius: 999px;
+	text-decoration: none;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
 
 /*==============================*/
 /* ORDERS                       */
@@ -1154,8 +1223,30 @@ section {
 	border-radius: 12px;
 	background: rgba(255, 255, 255, .06);
 	border: 1px solid rgba(255, 255, 255, .14);
-	text-align: center;
+	text-align: left;
+	/* reads better for long notes */
 	font-family: var(--apple-font);
+
+	/* scrollbox behavior */
+	max-height: 120px;
+	overflow-y: auto;
+	overflow-x: hidden;
+	word-break: break-word;
+	overflow-wrap: anywhere;
+	white-space: pre-wrap;
+}
+
+.order-notes::-webkit-scrollbar {
+	width: 6px;
+}
+
+.order-notes::-webkit-scrollbar-thumb {
+	background: rgba(255, 255, 255, .25);
+	border-radius: 6px;
+}
+
+.order-notes::-webkit-scrollbar-track {
+	background: transparent;
 }
 
 /* Total: bigger */
@@ -1288,6 +1379,466 @@ section {
 	gap: 4px;
 }
 
+/* Order-Confirmation */
+.order-confirm {
+	padding: 16px;
+	max-width: 820px;
+	margin: 0 auto;
+}
+
+.muted {
+	align-items: left;
+	text-align: left;
+}
+
+/* =========================================================
+   Shared card shell
+   ========================================================= */
+.pp-card {
+	margin: 0 auto;
+	background: rgba(0, 0, 0, 0.22);
+	border: 1px solid rgba(255, 255, 255, 0.10);
+	border-radius: 14px;
+	padding: 14px;
+	backdrop-filter: blur(6px);
+	color: #fff;
+	/* keep cards from stretching full width */
+	max-width: fit-content;
+}
+
+.pp-card.receipt-card {
+	color: #2b1d0f;
+	font-family: var(--apple-font);
+}
+
+/* =========================================================
+   Track card (Order Confirm page)
+   ========================================================= */
+.track-card-head {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin-bottom: 10px;
+}
+
+.track-card-title {
+	font-weight: 800;
+	font-size: 18px;
+	color: #fff;
+}
+
+.track-card-sub {
+	opacity: 0.85;
+}
+
+.track-card-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 0;
+	margin: 10px 0;
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.track-meta {
+	max-width: fit-content;
+	padding: 8px 10px;
+	border-radius: 10px;
+	background: rgba(255, 255, 255, .06);
+	border: 1px solid rgba(255, 255, 255, .10);
+	margin: 0 auto;
+}
+
+.tracker-title .muted {
+	text-align: center;
+}
+
+/* =========================================================
+   Order Tracker
+   ========================================================= */
+.tracker {
+	max-width: 980px;
+	margin: 0 auto;
+}
+
+.tracker-top {
+	background: rgba(0, 0, 0, .18);
+	border: 1px solid rgba(255, 255, 255, .10);
+	border-radius: 14px;
+	padding: 14px 16px;
+	text-align: center;
+}
+
+.tracker-top,
+.tracker-rail,
+.tracker-panel,
+.tracker-kitchen {
+	background: rgba(255, 255, 255, .06);
+}
+
+.tracker-kitchen {
+	background: rgba(255, 255, 255, .06);
+	max-width: fit-content;
+	margin: 0 auto;
+}
+
+.tracker-title {
+	font-size: 28px;
+	font-weight: 900;
+	letter-spacing: 1px;
+}
+
+.tracker-sub {
+	margin-top: 6px;
+	opacity: .9;
+}
+
+.tracker-rail {
+	margin-top: 14px;
+	background: rgba(0, 0, 0, .14);
+	border: 1px solid rgba(255, 255, 255, .10);
+	border-radius: 14px;
+	padding: 14px 14px 18px;
+}
+
+.tracker-steps {
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	gap: 10px;
+	align-items: center;
+	margin-bottom: 10px;
+}
+
+.tracker-step {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	opacity: .55;
+}
+
+.tracker-step.on {
+	opacity: 1
+}
+
+.tracker-step-dot {
+	width: 28px;
+	height: 28px;
+	border-radius: 999px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, .35);
+	color: #fff;
+	border: 1px solid rgba(255, 255, 255, .18);
+	font-weight: 800;
+}
+
+.tracker-step.on .tracker-step-dot {
+	background: #ffd166;
+	color: #000;
+}
+
+.tracker-step-label {
+	font-size: 12px;
+	font-weight: 800;
+	letter-spacing: .5px;
+}
+
+.tracker-bar {
+	height: 10px;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, .08);
+	border: 1px solid rgba(255, 255, 255, .12);
+	overflow: hidden;
+}
+
+.tracker-bar-fill {
+	height: 100%;
+	background: linear-gradient(90deg,
+			#ffd166,
+			#ffb703);
+	width: 0%;
+	transition: width .35s ease;
+}
+
+.tracker-panels {
+	margin-top: 14px;
+	display: flex;
+	grid-template-columns: 1fr 1.4fr 1fr;
+	gap: 12px;
+}
+
+.tracker-panel {
+	margin: 0 auto;
+	background: rgba(0, 0, 0, .18);
+	border: 1px solid rgba(255, 255, 255, .10);
+	border-radius: 14px;
+	padding: 12px;
+	max-width: fill-content;
+}
+
+.tracker-panel-title {
+	font-weight: 900;
+	letter-spacing: .8px;
+	margin-bottom: 10px;
+	opacity: .9;
+}
+
+.tracker-row {
+	display: flex;
+	justify-content: space-between;
+	gap: 10px;
+	margin-top: 6px;
+}
+
+.tracker-items {
+	display: grid;
+	gap: 8px;
+}
+
+.tracker-item {
+	align-items: center;
+	display: flex;
+	justify-content: space-between;
+	gap: 10px;
+	padding: 8px 10px;
+	border-radius: 12px;
+	background: rgba(255, 255, 255, .06);
+	border: 1px solid rgba(255, 255, 255, .10);
+}
+
+.tracker-item strong {
+	font-size: 16px;
+}
+
+.tracker-item .muted {
+	font-size: 14px;
+}
+
+.tracker-kitchen {
+	margin-top: 14px;
+	background: rgba(0, 0, 0, .18);
+	border: 1px solid rgba(255, 255, 255, .10);
+	border-radius: 14px;
+	padding: 12px;
+}
+
+@media (max-width:900px) {
+	.tracker-panels {
+		grid-template-columns: 1fr
+	}
+}
+
+.order-track {
+	color: #fff;
+}
+
+.order-track .muted {
+	color: rgba(255, 255, 255, .75);
+}
+
+.order-track .mono {
+	color: #fff;
+}
+
+/* =========================================================
+   Order Confirm panel wrapper
+   ========================================================= */
+.receipt-panel {
+	border-radius: 12px;
+	padding: 14px;
+}
+
+/* =========================================================
+   Receipt card layout
+   ========================================================= */
+.receipt-card {
+	--paper: #fbf4e1;
+
+	background:
+		linear-gradient(var(--paper), var(--paper)),
+		repeating-linear-gradient(0deg,
+			rgba(0, 0, 0, .02) 0 1px,
+			transparent 1px 3px);
+
+	position: relative;
+	border-radius: 18px;
+	padding: 20px 16px 22px;
+	box-shadow:
+		0 8px 0 rgba(0, 0, 0, .15),
+		0 16px 28px rgba(0, 0, 0, .35);
+	overflow: hidden;
+}
+
+/* torn edge INSIDE the paper */
+.receipt-card::before,
+.receipt-card::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	width: 100%;
+	height: 10px;
+	background:
+		repeating-linear-gradient(90deg,
+			transparent 0 6px,
+			rgba(0, 0, 0, .10) 6px 7px,
+			transparent 7px 12px);
+	opacity: .35;
+	pointer-events: none;
+}
+
+/* top perforation */
+.receipt-card::before {
+	top: 0;
+}
+
+/* bottom perforation */
+.receipt-card::after {
+	bottom: 0;
+}
+
+
+
+/* Header row: "Receipt" on the left, meta block on the right */
+.receipt-head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+/* Right-side column inside header */
+.receipt-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+/* Order meta block (Order ID / Status / Size / etc.) */
+.receipt-title {
+	text-align: center;
+	font-weight: 900;
+	font-size: 22px;
+	margin-bottom: 10px;
+}
+
+.receipt-meta-left {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	align-items: flex-start;
+	text-align: left;
+}
+
+
+.receipt-meta .mono.receipt-orderid {
+	text-align: left;
+	justify-self: start;
+}
+
+
+/* Divider line between header and totals */
+.receipt-line {
+	margin: 10px 0;
+	opacity: 0.55;
+	border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* Subtotal/Tax/Tip grid (labels left, values right) */
+.receipt-grid {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 8px 14px;
+	align-items: center;
+}
+
+.receipt-grid>div:nth-child(2n) {
+	text-align: right;
+}
+
+/* Bottom section: Total row + Download on its own line */
+.receipt-foot {
+	margin-top: 12px;
+	display: grid;
+	gap: 10px;
+}
+
+.receipt-total-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.receipt-foot .download {
+	width: 100%;
+}
+
+.receipt-items-title {
+	position: relative;
+	padding-bottom: 6px;
+	margin-bottom: 6px;
+}
+
+.receipt-items-title::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	border-top: 1px dashed rgba(0, 0, 0, .25);
+}
+
+
+.receipt-item {
+	padding: 8px 0;
+	border-bottom: 1px dashed rgba(0, 0, 0, .18);
+}
+
+.receipt-item:last-child {
+	border-bottom: 0;
+}
+
+.receipt-item-name {
+	font-weight: 800;
+}
+
+.receipt-item-meta,
+.receipt-item-tops {
+	font-size: 13px;
+	opacity: .85;
+	margin-top: 4px;
+	display: grid;
+	gap: 2px;
+}
+
+.receipt-item-notes {
+	font-size: 15px;
+	margin-top: 10px;
+	max-width: fit-content;
+}
+
+.receipt-notes-box {
+	margin-top: 10px;
+	padding: 8px 10px;
+	font-size: 14px;
+	line-height: 1.35;
+
+	background: rgba(0, 0, 0, .05);
+	border: 1px dashed rgba(0, 0, 0, .15);
+	border-radius: 8px;
+
+	max-height: 80px;
+	overflow-y: auto;
+	overflow-x: hidden;
+
+	white-space: pre-wrap;
+	word-break: break-word;
+	overflow-wrap: anywhere;
+}
+
 /* Order ID small, top-right */
 .order-subid {
 	font-size: 12px;
@@ -1386,6 +1937,29 @@ section {
 	border-radius: 12px;
 	padding: 14px;
 
+}
+
+.panel-order {
+	background: var(--card-bg);
+	border: 1px solid var(--card-border);
+	border-radius: 12px;
+	padding: 14px;
+	max-width: fit-content;
+	margin: 0 auto;
+}
+
+.panel-order .panel-head {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+}
+
+.panel-head {
+	display: flex;
+	align-items: center;
+	text-align: center;
+	margin: 0 auto;
 }
 
 .panel.helper.staff-home-actions {
@@ -1810,6 +2384,12 @@ strong {
 
 .track-form input {
 	max-width: 180px;
+}
+
+.track-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	gap: 12px;
 }
 
 /*==============================*/

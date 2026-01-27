@@ -263,7 +263,7 @@ export default function PizzaBuilderPage() {
 		addItem({
 			id: crypto.randomUUID(),
 			type: 'pizza',
-			name: 'Custom Pizza',
+			name: 'Pizza',
 			qty: 1,
 			display: {
 				size: size.label,
@@ -367,9 +367,10 @@ export default function PizzaBuilderPage() {
 						<textarea
 							placeholder="e.g. extra cheese, no onions, well done"
 							value={notes}
-							onChange={e => setNotes(e.target.value)}
+							onChange={e => setNotes(e.target.value.slice(0, 120))}
 							rows={3}
 						/>
+
 					</div>
 
 					<button className="btn-reset" onClick={reset}>Reset</button>

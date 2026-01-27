@@ -9,6 +9,9 @@ import SaladBuilderPage from "../pages/SaladBuilderPage.jsx"
 import CalzoneBuilderPage from "../pages/CalzoneBuilderPage.jsx"
 import CheckoutPage from "../pages/CheckoutPage.jsx"
 import CartPage from "../pages/CartPage.jsx"
+import OrderTrackPage from "../pages/OrderTrackPage.jsx"
+import OrderConfirmationPage from "../pages/OrderConfirmationPage.jsx"
+import OrderHistoryPage from "../pages/OrderHistoryPage.jsx"
 
 /* Staff pages */
 import StaffHomePage from '../pages/staff/StaffHomePage.jsx'
@@ -55,10 +58,14 @@ export default function AppRoutes() {
       <Route path="/build/pizza" element={<RedirectWithSearch to="/builder/pizza" />} />
       <Route path="/build/salad" element={<RedirectWithSearch to="/builder/salad" />} />
       <Route path="/build/calzone" element={<RedirectWithSearch to="/builder/calzone" />} />
+      <Route path="/orders" element={<OrderHistoryPage />} />
+
 
       <Route path="/cart" element={<CartPage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
-      <Route path="/order-confirmation" element={<div style={{ padding: 16 }}>Thank you for your Purchase (There will be a track here soon)</div>} />
+      <Route path="/order-confirmation/:id" element={<OrderConfirmationPage />} />
+
+      <Route path="/order/:id" element={<OrderTrackPage />} />
 
       <Route path="/staff" element={<RequireRole roles={["staff", "admin"]}><StaffHomePage /></RequireRole>} />
       <Route path="/staff/archived" element={<RequireRole roles={["staff", "admin"]}><ArchivedOrdersPage /></RequireRole>} />

@@ -10,9 +10,17 @@ export default function StaffOrdersPage(){
 	const toppingNameById=useMemo(()=>{
 		const m=new Map()
 		for(const t of(allToppings||[])){
-			const id=String(t._id||t.id||t.code||t.slug)
-			const name=String(t.name||t.label||t.title||id)
-			m.set(id,name)
+			const name=String(t.name||t.label||t.title||"").trim()
+
+			const k1=String(t._id||"")
+			const k2=String(t.id||"")
+			const k3=String(t.code||"")
+			const k4=String(t.slug||"")
+
+			if(k1)m.set(k1,name||k1)
+			if(k2)m.set(k2,name||k2)
+			if(k3)m.set(k3,name||k3)
+			if(k4)m.set(k4,name||k4)
 		}
 		return m
 	},[allToppings])
@@ -26,17 +34,25 @@ export default function StaffOrdersPage(){
 		for(const o of(list||[])){
 			const items=Array.isArray(o.items)?o.items:[]
 			if(items.length<=1){
-				out.push({...o,orderId:o._id,subLabel:"",itemIndex:0})
+				out.push({
+					...o,
+					orderId:o._id,
+					subLabel:"",
+					itemIndex:0,
+					subKey:`${o._id}:0`,
+					_key:`${o._id}:0`,
+				})
 				continue
 			}
 			for(let i=0;i<items.length;i++){
 				const letter=idxToLetter(i)
 				out.push({
 					...o,
-					_id:`${o._id}:${letter}`,
 					orderId:o._id,
 					subLabel:letter,
 					itemIndex:i,
+					subKey:`${o._id}:${i}`,
+					_key:`${o._id}:${letter}`,
 					items:[items[i]],
 				})
 			}
@@ -49,7 +65,7 @@ export default function StaffOrdersPage(){
 			setError("")
 			const[data,tops]=await Promise.all([
 				jsonFetch("/api/staff/orders"),
-				jsonFetch("/api/toppings"),
+				jsonFetch("/api/toppings?all=1"),
 			])
 			const list=Array.isArray(data)?data:(Array.isArray(data?.orders)?data.orders:[])
 			const withNums=list.map((o,i)=>({...o,displayNumber:i+1}))
@@ -90,11 +106,12 @@ export default function StaffOrdersPage(){
 				return{
 					...updated,
 					displayNumber:o.displayNumber,
-					_id:o._id,
 					orderId:o.orderId,
 					subLabel:o.subLabel,
 					itemIndex:o.itemIndex,
 					items:o.items,
+					subKey:o.subKey,
+					_key:o._key||o.subKey,
 				}
 			})
 		})
@@ -109,7 +126,12 @@ export default function StaffOrdersPage(){
 					<div className="no-orders">No orders at the moment.</div>
 				):(
 					orders.map(o=>(
-						<StaffOrderCard key={o._id} order={o} onPatch={onPatch} toppingNameById={toppingNameById}/>
+						<StaffOrderCard
+							key={o._key||o.subKey}
+							order={o}
+							onPatch={onPatch}
+							toppingNameById={toppingNameById}
+						/>
 					))
 				)}
 			</div>

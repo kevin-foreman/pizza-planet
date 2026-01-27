@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
+import { jsonFetch } from "../api/http.js"
 
 function onlyDigits(s) {
 	return (s || '').replace(/\D/g, '')
@@ -118,11 +119,11 @@ export default function CheckoutPage() {
 
 
 
-			const res = await fetch('/api/checkout', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+			const res = await jsonFetch("/api/checkout", {
+				method: "POST",
 				body: JSON.stringify(payload),
 			})
+
 
 			if (!res.ok) {
 				const j = await res.json().catch(() => null)
@@ -130,7 +131,8 @@ export default function CheckoutPage() {
 			}
 
 			clearCart && clearCart()
-			navigate('/order-confirmation')
+			navigate(`/order-confirmation/${res.orderId}`)
+
 		} catch (ex) {
 			setErr(ex.message || 'Checkout failed')
 		} finally {

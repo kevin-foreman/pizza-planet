@@ -21,13 +21,18 @@ const kitchenItemSchema = new Schema({
     lastBackAtIndex: { type: Number, default: -1 },
     ovenConfirmedAt: { type: Date, default: null },
     cookedConfirmedAt: { type: Date, default: null },
+    backUsed: { type: Boolean, default: false },
     doneAt: { type: Date, default: null },
     canceledAt: { type: Date, default: null },
     canceledBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
 }, { _id: false })
 
 
+
 const orderSchema = new Schema({
+    /*For User to track order */
+    userId: { type: Schema.Types.ObjectId, ref: "User", default: null, index: true },
+
     customerName: { type: String, default: "Guest" },
     notes: { type: String, default: "" },
 

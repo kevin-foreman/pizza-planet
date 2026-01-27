@@ -7,7 +7,6 @@ import pizzaRoutes from "./routes/pizzaRoutes.js"
 import toppingRoutes from "./routes/toppingRoutes.js"
 import checkoutRoutes from "./routes/checkoutRoutes.js"
 import adminUsers from "./routes/adminUsersRoutes.js"
-import orderRoutes from "./routes/orderRoutes.js"
 import shiftsRoutes from './routes/shiftsRoutes.js'
 import archivedOrdersRoutes from "./routes/archivedOrdersRoutes.js"
 
@@ -17,7 +16,8 @@ import Salad from "./models/Salad.js"
 import Calzone from "./models/Calzone.js"
 import Pricing from "./models/Pricing.js"
 
-
+import staffOrderRoutes from "./routes/staffOrderRoutes.js"
+import customerOrderRoutes from "./routes/customerOrderRoutes.js"
 
 import { notFoundHandler } from "./middleware/notFoundHandler.js"
 import { errorHandler } from "./middleware/errorHandler.js"
@@ -176,11 +176,13 @@ app.use("/api", adminUsers)
 app.use("/api/auth", authRoutes)
 app.use("/api/pizzas", pizzaRoutes)
 app.use("/api/toppings", toppingRoutes)
+app.use("/api/orders", customerOrderRoutes)
 
 app.use("/api/checkout", checkoutRoutes)
 app.use('/api/shifts', shiftsRoutes)
-app.use("/api/staff/orders", orderRoutes)
 app.use("/api/archived_orders", archivedOrdersRoutes)
+app.use("/api/staff/orders", staffOrderRoutes)
+
 
 app.use(notFoundHandler)
 app.use(errorHandler)

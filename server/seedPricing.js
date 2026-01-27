@@ -27,7 +27,11 @@ const DEFAULT_PRICING = {
         { id: 'gp', label: 'Green Peppers', price: 0.75 },
         { id: 'ham', label: 'Ham', price: 1.35 },
     ],
-    taxRate: 0,
+    taxRate: await Pricing.findOneAndUpdate(
+        { key: "singleton" },
+        { $set: { ...DEFAULT_PRICING, key: "singleton" } },
+        { upsert: true, new: true }
+    ),
 }
 
 async function main() {
