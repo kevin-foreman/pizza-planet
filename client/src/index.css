@@ -1745,11 +1745,11 @@ section {
 	column-gap: 16px;
 }
 
-.active-lines{
-	grid-column:1;
-	text-align:left;
-	font-size:.95rem;
-	line-height:1.35;
+.active-lines {
+	grid-column: 1;
+	text-align: left;
+	font-size: .95rem;
+	line-height: 1.35;
 }
 
 
@@ -1760,12 +1760,12 @@ section {
 	word-break: break-word;
 }
 
-.active-price{
-	grid-column:2;
-	align-self:flex-start;
-	font-size:1.25rem;
-	font-weight:900;
-	white-space:nowrap;
+.active-price {
+	grid-column: 2;
+	align-self: flex-start;
+	font-size: 1.25rem;
+	font-weight: 900;
+	white-space: nowrap;
 }
 
 /* Row 3 */
@@ -2530,6 +2530,24 @@ strong {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 	gap: 12px;
+}
+
+.track-status.COMPLETED,
+.track-status.DONE,
+.track-status.READY {
+	color: #6be585;
+}
+
+.track-status.CANCELED {
+	color: #ff6b6b;
+}
+
+.track-status.IN_PROGRESS,
+.track-status.RECEIVED,
+.track-status.PREP,
+.track-status.BAKE,
+.track-status.BOX {
+	color: #ffd166;
 }
 
 /*==============================*/

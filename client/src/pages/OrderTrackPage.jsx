@@ -53,6 +53,9 @@ export default function OrderTrackPage() {
     const receiptText = useMemo(() => {
         return buildReceiptText({ orderId: id, track: data, now: Date.now() })
     }, [id, data])
+    const st = String(data?.status || "").toUpperCase()
+    const showKitchen = st !== "COMPLETED" && st !== "DONE" && st !== "READY" && st !== "CANCELED"
+
 
     return (
         <div className="page order-track">
@@ -65,7 +68,7 @@ export default function OrderTrackPage() {
                         <div className="tracker-top">
                             <div className="tracker-title">PIZZA TRACKER</div>
                             <div className="tracker-sub">
-                                Order <span className="mono">{id}</span> • Status <strong>{String(data.status || "").toUpperCase()}</strong>
+                                Order <span className="mono">{id}</span> • Status <strong className={`track-status ${st}`}>{st}</strong>
                             </div>
                         </div>
 
@@ -83,46 +86,47 @@ export default function OrderTrackPage() {
                                 <div className="tracker-bar-fill" style={{ width: `${statusPct(data.status)}%` }} />
                             </div>
                         </div>
-                        <div className="tracker-kitchen">
-                            <div className="tracker-panel-title">KITCHEN PROGRESS</div>
+                        {showKitchen && (
+                            <div className="tracker-kitchen">
+                                <div className="tracker-panel-title">KITCHEN PROGRESS</div>
 
-                            <div className="track-list">
-                                {(data.items || []).map((it, i) => {
-                                    const k = it?.kitchen || null
-                                    const tops = Array.isArray(it?.toppings) ? it.toppings : []
-                                    const doneArr = Array.isArray(k?.toppingDone) ? k.toppingDone : []
-                                    const completed = Math.min(doneArr.length, tops.length)
-                                    const total = tops.length
-                                    const nextId = tops[completed] || ""
+                                <div className="track-list">
+                                    {(data.items || []).map((it, i) => {
+                                        const k = it?.kitchen || null
+                                        const tops = Array.isArray(it?.toppings) ? it.toppings : []
+                                        const doneArr = Array.isArray(k?.toppingDone) ? k.toppingDone : []
+                                        const completed = Math.min(doneArr.length, tops.length)
+                                        const total = tops.length
+                                        const nextId = tops[completed] || ""
 
-                                    return (
-                                        <div className="track-card" key={i}>
-                                            <div className="track-title">
-                                                <div>{it?.name || `Item ${i + 1}`}</div>
-                                                <div className="panel-kitchen-qty">Qty: {Number(it?.qty || 1)}</div>
-                                            </div>
-
-                                            <div className="track-meta">
-                                                <div className="muted">Toppings progress</div>
-                                                <div className="mono">{completed} / {total} toppings added</div>
-
-                                            </div>
-
-                                            {nextId ? (
-                                                <div className="track-meta">
-                                                    <div className="muted">Up next: {nextId}</div>
+                                        return (
+                                            <div className="track-card" key={i}>
+                                                <div className="track-title">
+                                                    <div>{it?.name || `Item ${i + 1}`}</div>
+                                                    <div className="panel-kitchen-qty">Qty:{Number(it?.qty || 1)}</div>
                                                 </div>
-                                            ) : (
-                                                <div className="track-meta">
-                                                    <div className="mono">All toppings added waiting to go in the oven.</div>
-                                                </div>
-                                            )}
 
-                                        </div>
-                                    )
-                                })}
+                                                <div className="track-meta">
+                                                    <div className="muted">Toppings progress</div>
+                                                    <div className="mono">{completed}/{total} toppings added</div>
+                                                </div>
+
+                                                {nextId ? (
+                                                    <div className="track-meta">
+                                                        <div className="muted">Up next:{nextId}</div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="track-meta">
+                                                        <div className="mono">All toppings added waiting to go in the oven.</div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )
+                                    })}
+                                </div>
                             </div>
-                        </div>
+                        )}
+
                         <div className="tracker-panels">
                             <div className="tracker-panel">
                                 <div className="tracker-panel-title">YOUR ORDER</div>

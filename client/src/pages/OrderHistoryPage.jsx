@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { jsonFetch } from "../api/http.js"
+
 
 export default function OrderHistoryPage() {
 	const [data, setData] = useState({ active: [], archived: [] })
 	const [err, setErr] = useState("")
 	const [loading, setLoading] = useState(true)
+	const navigate = useNavigate()
 
 	useEffect(() => {
 		let alive = true
@@ -15,7 +17,9 @@ export default function OrderHistoryPage() {
 					setLoading(true)
 					const d = await jsonFetch("/api/orders/mine")
 					if (!alive) return
+					console.log("ORDERS_MINE", d)
 					setData(d || { active: [], archived: [] })
+
 				} catch (e) {
 					if (!alive) return
 					setErr(String(e?.message || e))

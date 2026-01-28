@@ -58,6 +58,10 @@ export default function NavBar() {
 								<Link to="/staff">Staff</Link>
 							</>
 						)}
+						<>
+							<span className="nav-sep">|</span>
+							<Link to="/orders">Order History</Link>
+						</>
 
 						<span className="nav-sep">|</span>
 						<button type="button" className="nav-logout" onClick={handleLogout}>Logout</button>
