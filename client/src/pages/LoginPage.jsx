@@ -20,7 +20,7 @@ function passwordCheck(pw) {
     upper: countMatches(s, /[A-Z]/g) >= 2,
     lower: countMatches(s, /[a-z]/g) >= 2,
     num: countMatches(s, /[0-9]/g) >= 2,
-    special: countMatches(s, /[^A-Za-z0-9]/g) >= 2,
+    special: countMatches(s, /[^A-Za-z0-9]/g) >= 1,
   }
 }
 
@@ -177,7 +177,7 @@ export default function LoginPage() {
                 <li className={pw.upper ? "ok" : "no"}>At least 2 uppercase letters</li>
                 <li className={pw.lower ? "ok" : "no"}>At least 2 lowercase letters</li>
                 <li className={pw.num ? "ok" : "no"}>At least 2 numbers</li>
-                <li className={pw.special ? "ok" : "no"}>At least 2 special characters</li>
+                <li className={pw.special ? "ok" : "no"}>At least 1 special characters</li>
               </ul>
             </div>
           )}
