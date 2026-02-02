@@ -58,14 +58,15 @@ function itemKey(it) {
 
 	const tops = [...(d.toppings || [])].sort().join("|")
 	const notes = norm(it?.notes)
-
+	const deliveryNotes = norm(it?.deliveryNotes)
 	return [
 		base,
 		size,
 		crust,
 		sauce,
 		tops,
-		notes
+		notes,
+		deliveryNotes
 	].join("::")
 }
 
@@ -103,84 +104,84 @@ function TrackOrderCard({ orderId }) {
 	)
 }
 function buildShareMessage({ orderId, track }) {
-  const status = String(track?.status || "").toUpperCase()
-  const total = money(track?.total)
+	const status = String(track?.status || "").toUpperCase()
+	const total = money(track?.total)
 
-  // Keep it short. Most platforms will truncate long text.
-  const items = Array.isArray(track?.items) ? track.items : []
-  const grouped = groupItems(items)
-  const topLine = grouped
-    .slice(0, 3)
-    .map(g => {
-      const d = getItemDisplay(g.it)
-      return `${g.qty}x ${d.base}${d.size ? ` (${d.size})` : ""}`
-    })
-    .join(", ")
+	// Keep it short. Most platforms will truncate long text.
+	const items = Array.isArray(track?.items) ? track.items : []
+	const grouped = groupItems(items)
+	const topLine = grouped
+		.slice(0, 3)
+		.map(g => {
+			const d = getItemDisplay(g.it)
+			return `${g.qty}x ${d.base}${d.size ? ` (${d.size})` : ""}`
+		})
+		.join(", ")
 
-  const more = grouped.length > 3 ? ` +${grouped.length - 3} more` : ""
+	const more = grouped.length > 3 ? ` +${grouped.length - 3} more` : ""
 
-  return `Pizza Planet 🍕 Order ${orderId} ${status ? `(${status}) ` : ""}- ${topLine}${more}. Total: $${total}`
+	return `Pizza Planet 🍕 Order ${orderId} ${status ? `(${status}) ` : ""}- ${topLine}${more}. Total: $${total}`
 }
 
 function ShareButtons({ orderId, track }) {
-  if (!orderId) return null
+	if (!orderId) return null
 
-  const pageUrl = window.location.href
-  const title = "Pizza Planet Order"
-  const text = buildShareMessage({ orderId, track })
+	const pageUrl = window.location.href
+	const title = "Pizza Planet Order"
+	const text = buildShareMessage({ orderId, track })
 
-  const encodedUrl = encodeURIComponent(pageUrl)
-  const encodedText = encodeURIComponent(text)
-  const encodedTitle = encodeURIComponent(title)
+	const encodedUrl = encodeURIComponent(pageUrl)
+	const encodedText = encodeURIComponent(text)
+	const encodedTitle = encodeURIComponent(title)
 
-  const shareLinks = {
-    x: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
-    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
-    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
-    reddit: `https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`,
-    email: `mailto:?subject=${encodedTitle}&body=${encodedText}%0A%0A${encodedUrl}`,
-  }
+	const shareLinks = {
+		x: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
+		facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+		linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+		reddit: `https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`,
+		email: `mailto:?subject=${encodedTitle}&body=${encodedText}%0A%0A${encodedUrl}`,
+	}
 
-  async function handleNativeShare() {
-    try {
-      if (!navigator.share) return
-      await navigator.share({ title, text, url: pageUrl })
-    } catch {
-      // user canceled or share failed; ignore
-    }
-  }
+	async function handleNativeShare() {
+		try {
+			if (!navigator.share) return
+			await navigator.share({ title, text, url: pageUrl })
+		} catch {
+			// user canceled or share failed; ignore
+		}
+	}
 
-  return (
-    <div className="pp-card share-card">
-      <div className="share-card-title">Share your order</div>
-      <div className="muted">Show off your Pizza Planet haul 🍕</div>
+	return (
+		<div className="pp-card share-card">
+			<div className="share-card-title">Share your order</div>
+			<div className="share-copy">Show off your Pizza Planet haul 🍕</div>
 
-      <div className="share-actions">
-        {navigator.share ? (
-          <button type="button" className="primary-btn" onClick={handleNativeShare}>
-            Share
-          </button>
-        ) : null}
+			<div className="share-actions">
+				{navigator.share ? (
+					<button type="button" className="primary-btn" onClick={handleNativeShare}>
+						Share
+					</button>
+				) : null}
 
-        <a className="share-btn" href={shareLinks.x} target="_blank" rel="noreferrer">X</a>
-        <a className="share-btn" href={shareLinks.facebook} target="_blank" rel="noreferrer">Facebook</a>
-        <a className="share-btn" href={shareLinks.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
-        <a className="share-btn" href={shareLinks.reddit} target="_blank" rel="noreferrer">Reddit</a>
-        <a className="share-btn" href={shareLinks.email}>Email</a>
-      </div>
+				<a className="share-btn" href={shareLinks.x} target="_blank" rel="noreferrer">X </a>
+				<a className="share-btn" href={shareLinks.facebook} target="_blank" rel="noreferrer">Facebook </a>
+				<a className="share-btn" href={shareLinks.linkedin} target="_blank" rel="noreferrer">LinkedIn </a>
+				<a className="share-btn" href={shareLinks.reddit} target="_blank" rel="noreferrer">Reddit </a>
+				<a className="share-btn" href={shareLinks.email}>Email </a>
+			</div>
 
-      <div className="share-copy">
-        <input className="share-input" readOnly value={pageUrl} />
-        <button
-          type="button"
-          className="share-btn"
-          onClick={() => navigator.clipboard?.writeText(pageUrl)}
-        >
-          Copy link
-        </button>
-      </div>
-    </div>
-  )
+			<div className="share-copy">
+				<input className="share-input" readOnly value={pageUrl} />
+				<button
+					type="button"
+					className="primary-btn"
+					onClick={() => navigator.clipboard?.writeText(pageUrl)}
+				>
+					Copy link
+				</button>
+			</div>
+		</div>
+	)
 }
 
 export default function OrderConfirmationPage() {
@@ -219,7 +220,7 @@ export default function OrderConfirmationPage() {
 		<div className="page order-confirm">
 			<div className="receipt-panel">
 				<h1>Order Confirmed</h1>
-				<p className="muted">Thanks! Your order has been placed.</p>
+				<p className="share-copy">Thanks! Your order has been placed.</p>
 
 				{err && (
 					<div className="pp-card">
@@ -287,6 +288,15 @@ export default function OrderConfirmationPage() {
 												<strong>Notes:</strong>
 												<div className="receipt-notes-box">
 													{it.notes}
+												</div>
+											</div>
+										) : null}
+
+										{it?.deliveryNotes ? (
+											<div className="receipt-item-notes">
+												<strong>Notes:</strong>
+												<div className="receipt-notes-box">
+													{it.deliveryNotes}
 												</div>
 											</div>
 										) : null}

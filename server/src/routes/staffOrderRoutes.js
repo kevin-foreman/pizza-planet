@@ -45,6 +45,7 @@ function normalizeItems(order) {
             sauce: String(disp?.sauce || cfg?.sauce || order.sauce || ""),
             toppings: Array.isArray(tops) ? tops.map(String) : [],
             notes: String(it?.notes || ""),
+            deliveryNotes: String(it?.deliveryNotes || ""),
         }
     })
 }
@@ -60,6 +61,7 @@ function normalizeOrder(o) {
         status: mapStatus(o.status),
         items: normalizeItems(o),
         notes: String(o.notes || ""),
+        deliveryNotes: String(o.deliveryNotes || ""),
         total: Number(o.total || 0),
         kitchen: {
             items: Array.isArray(o.kitchen?.items) ? o.kitchen.items : [],

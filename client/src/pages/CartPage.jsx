@@ -129,6 +129,11 @@ export default function CartPage() {
 												<b>Notes:</b> {i.notes}
 											</div>
 										) : null}
+										{i.deliveryNotes ? (
+											<div className="order-notes">
+												<b>Delivery notes:</b> {i.deliveryNotes}
+											</div>
+										) : null}
 
 										<div className="order-actions">
 											<div style={{ display: "flex", alignItems: "center", gap: "8px" }}>

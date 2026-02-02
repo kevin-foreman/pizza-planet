@@ -28,6 +28,7 @@ router.post("/", requireAuth, async (req, res) => {
 
             customerName: (customer?.name || "Guest").trim(),
             notes: (order.notes || "").trim(),
+            deliveryNotes: (order.deliveryNotes || "").trim(),
             size: order.size || "Medium",
             crust: order.crust || "Hand Tossed",
             sauce: order.sauce || "Tomato",
@@ -39,7 +40,9 @@ router.post("/", requireAuth, async (req, res) => {
                 display: i.display || {},
                 config: i.config || {},
                 notes: (i.notes || "").trim(),
+                deliveryNotes: (i.deliveryNotes || "").trim(),
             })),
+
             subtotal,
             tip,
             tax,

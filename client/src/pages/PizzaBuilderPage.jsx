@@ -42,6 +42,7 @@ export default function PizzaBuilderPage() {
 	const [selected, setSelected] = useState({})
 	const [notes, setNotes] = useState("")
 	const [notice, setNotice] = useState("")
+	const [deliveryNotes, setDeliveryNotes] = useState("")
 
 	const sizes = pricing?.sizes || []
 	const crusts = pricing?.crusts || []
@@ -256,6 +257,8 @@ export default function PizzaBuilderPage() {
 		setSelected({})
 		setNotes('')
 		setNotice('')
+		setDeliveryNotes("")
+
 	}
 
 	function addToCart() {
@@ -279,7 +282,9 @@ export default function PizzaBuilderPage() {
 			},
 			unitPrice: Number(total.toFixed(2)),
 			notes: notes.trim(),
+			deliveryNotes: deliveryNotes.trim(),
 		})
+
 
 		setNotes('')
 		setShowAddModal(true)
@@ -363,7 +368,7 @@ export default function PizzaBuilderPage() {
 					</div>
 
 					<div>
-						<div className="option-title">Special Instructions</div>
+						<div className="option-title">Order Notes: </div>
 						<textarea
 							placeholder="e.g. extra cheese, no onions, well done"
 							value={notes}
@@ -371,6 +376,15 @@ export default function PizzaBuilderPage() {
 							rows={3}
 						/>
 
+					</div>
+					<div>
+						<div className="option-title">Delivery Notes</div>
+						<textarea
+							placeholder="e.g. leave at door, call on arrival"
+							value={deliveryNotes}
+							onChange={e => setDeliveryNotes(e.target.value.slice(0, 120))}
+							rows={3}
+						/>
 					</div>
 
 					<button className="btn-reset" onClick={reset}>Reset</button>

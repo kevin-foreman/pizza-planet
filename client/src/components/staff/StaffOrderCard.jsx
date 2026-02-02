@@ -63,8 +63,21 @@ function fmt(ms) {
     return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`
 }
 
-export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
+export default function StaffOrderCard({ order, onPatch, toppingNameById, deliveryNotes }) {
+
     if (!order) return null
+
+    const dn = useMemo(() => {
+        const a = String(order?.deliveryNotes || "").trim()
+        if (a) return a
+        const items = Array.isArray(order?.items) ? order.items : []
+        for (const it of items) {
+            const b = String(it?.deliveryNotes || "").trim()
+            if (b) return b
+        }
+        return ""
+    }, [order])
+
 
     const toppings = useMemo(() => flattenToppings(order, toppingNameById), [order, toppingNameById])
     const itemIndex = Number.isFinite(order.itemIndex) ? order.itemIndex : 0
@@ -122,8 +135,22 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
     const ovenConfirmed = !!k.ovenConfirmedAt
     const cookedConfirmed = !!k.cookedConfirmedAt
 
-    // cooked confirmed -> ONLY Mark Ready (until clicked)
-    const showMarkReadyOnly = isInProgress && allDone && ovenConfirmed && cookedConfirmed && !isSubDone && !isSubCanceled
+
+
+    // elapsed timer (since createdAt)
+    // elapsed timer (since createdAt). cap at 1 hour
+    const createdMs = order?.createdAt ? new Date(order.createdAt).getTime() : NaN
+    const [elapsedSec, setElapsedSec] = useState(0)
+    const [expired, setExpired] = useState(false)
+    const [instructionsConfirmed, setInstructionsConfirmed] = useState(false)
+    const [deliveryConfirmed, setDeliveryConfirmed] = useState(false)
+
+    useEffect(() => {
+        setDeliveryConfirmed(false)
+    }, [order._id])
+    useEffect(() => {
+        setInstructionsConfirmed(false)
+    }, [order._id])
 
     const [confirm, setConfirm] = useState({ open: false, kind: "", title: "", text: "" })
     function openConfirm(kind, title, text) { setConfirm({ open: true, kind, title, text }) }
@@ -136,7 +163,8 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
     }
 
 
-
+    // cooked confirmed -> ONLY Mark Ready (until clicked)
+    const showMarkReadyOnly = isInProgress && allDone && ovenConfirmed && cookedConfirmed && !isSubDone && !isSubCanceled && (!order.notes || instructionsConfirmed) && (!order.deliveryNotes || deliveryConfirmed)
 
     function toInt(v) {
         const n = parseInt(String(v), 10)
@@ -159,23 +187,20 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
 
 
     function canConfirmInOven() {
+        if (order.notes && !instructionsConfirmed) return false
+        if (dn && !deliveryConfirmed) return false
         return isInProgress && !ovenConfirmed && allDone
     }
 
+
     function canConfirmCooked() {
+        if (order.notes && !instructionsConfirmed) return false
+        if (dn && !deliveryConfirmed) return false
         return isInProgress && ovenConfirmed && !cookedConfirmed
     }
 
-    // elapsed timer (since createdAt)
-    // elapsed timer (since createdAt). cap at 1 hour
-    const createdMs = order?.createdAt ? new Date(order.createdAt).getTime() : NaN
-    const [elapsedSec, setElapsedSec] = useState(0)
-    const [expired, setExpired] = useState(false)
-    const [instructionsConfirmed, setInstructionsConfirmed] = useState(false)
 
-    useEffect(() => {
-        setInstructionsConfirmed(false)
-    }, [order._id])
+
 
     useEffect(() => {
         if (!Number.isFinite(createdMs)) return
@@ -232,6 +257,7 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
         if (!next) return
         openConfirm("topping", `Confirm topping: ${next.label} ON the item.`)
     }
+
     function onConfirmInstructions() {
         if (!order.notes) return
         openConfirm(
@@ -241,16 +267,30 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
         )
     }
 
+    function onConfirmDelivery() {
+        if (!order.deliveryNotes) return
+        openConfirm(
+            "delivery",
+            "Delivery notes",
+            `Tell the driver:\n\n${order.deliveryNotes}\n\nDo you confirm that you will tell the delivery driver?`
+        )
+    }
+
+
     function onConfirmInOven() {
-        const note = order.notes ? `Special notes:\n\n${order.notes}\n\nConfirm you read these before placing in oven.` : "Confirm this item is in the oven."
-        openConfirm("oven", "Confirm in oven?", note)
+        openConfirm("oven", "Confirm in oven?")
     }
     function onConfirmCooked() {
         openConfirm("cooked", "Confirm cooked?", "Confirm this item is fully cooked.")
     }
     function onMarkDone() {
-        openConfirm("done", "Mark item done?", "Marks this order done.")
+        let msg = "Marks this order done."
+        if (order.deliveryNotes) {
+            msg = `Delivery notes:\n\n${order.deliveryNotes}\n\nDo you confirm that you will tell the delivery driver?`
+        }
+        openConfirm("done", "Mark item done?", msg)
     }
+
 
 
     async function handleConfirm() {
@@ -258,6 +298,11 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
         closeConfirm()
         if (kind === "instructions") {
             setInstructionsConfirmed(true)
+            return
+        }
+
+        if (kind === "delivery") {
+            setDeliveryConfirmed(true)
             return
         }
 
@@ -297,6 +342,7 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
             })
             return
         }
+
 
 
         if (kind === "back") {
@@ -343,10 +389,14 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
             await patch({
                 kitchen: {
                     ovenConfirmedAt: new Date().toISOString(),
+                    cookedConfirmedAt: "",
                 },
             })
             return
         }
+
+
+
 
         if (kind === "cooked") {
             await patch({
@@ -369,7 +419,7 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
             <div className="order-top">
                 <div className="order-left">
                     <div className="order-id">Order #{order.displayNumber || "?"}{order.subLabel || ""}</div>
-                    <div className="order-name">Customer notes: {order.customerName || "Guest"}</div>
+                    <div className="order-name">Customer name: {order.customerName || "Guest"}</div>
                     <div className="order-time">
                         <span>Time ordered: {order.timeLabel || ""}</span>
                         <span className="dot">•</span>
@@ -412,7 +462,7 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
             </div>
 
             {order.notes ? (<div className="order-notes">Notes: {order.notes}</div>) : null}
-
+            {order.deliveryNotes ? (<div className="order-notes">Order Notes: {order.deliveryNotes}</div>) : null}
             <div className="order-notes" style={{ marginTop: 12 }}>
                 <div style={{ fontWeight: 900, marginBottom: 8 }}>Toppings</div>
 
@@ -443,10 +493,22 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
                         </button>
                     </div>
                 )}
-
+                {deliveryNotes ? (
+                    <div className="driver-notes">
+                        <div className="muted">Tell the driver:</div>
+                        <div className="mono">{deliveryNotes}</div>
+                    </div>
+                ) : null}
                 {/* Mark done */}
                 {isInProgress && showMarkReadyOnly && (
                     <div className="order-actions-right">
+
+                        {dn ? (
+                            <div className="order-notes" style={{ marginBottom: 10 }}>
+                                <b>Tell the driver:</b> {dn}
+                            </div>
+                        ) : null}
+
                         <button type="button" className="btn btn-primary" onClick={onMarkDone}>
                             Mark Done
                         </button>
@@ -478,6 +540,12 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById }) {
                             {isInProgress && order.notes && !instructionsConfirmed && (
                                 <button className="btn btn-success" onClick={onConfirmInstructions}>
                                     Confirm Instructions Read
+                                </button>
+                            )}
+
+                            {isInProgress && deliveryNotes && !deliveryConfirmed && (
+                                <button className="btn btn-success" onClick={onConfirmDelivery}>
+                                    Confirm Delivery Notes Read
                                 </button>
                             )}
 

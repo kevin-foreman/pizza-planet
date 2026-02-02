@@ -1420,6 +1420,20 @@ section {
 	gap: 4px;
 	margin-bottom: 10px;
 }
+ .share-card-title .muted{font-size:10000px;}
+
+.share-copy {
+	margin-top: 10px;
+}
+
+.share-btn {
+	font-weight: 500;
+	font-family: var(--apple-font);
+}
+
+.share-btn:hover {
+	color: rgb(0, 140, 255);
+}
 
 .track-card-title {
 	font-weight: 800;

@@ -103,11 +103,15 @@ export default function CheckoutPage() {
 						display: i.display || null,
 						config: i.config || null,
 						notes: i.notes || '',
+						deliveryNotes: i.deliveryNotes || "",
+
 					})),
 					size: firstPizza?.display?.size || 'Medium',
 					crust: firstPizza?.display?.crust || 'Hand Tossed',
 					sauce: firstPizza?.display?.sauce || 'Tomato',
-					notes: firstPizza?.notes || '',
+					notes: firstPizza?.notes || "",
+					deliveryNotes: firstPizza?.deliveryNotes || "",
+
 					subtotal: Number(subtotal || 0),
 					tip: Number(tipAmount || 0),
 					tax: 0,
@@ -179,6 +183,13 @@ export default function CheckoutPage() {
 											<b>Notes:</b> {i.notes}
 										</div>
 									) : null}
+
+									{i.deliveryNotes ? (
+										<div className="order-notes">
+											<b>Delivery Notes:</b> {i.deliveryNotes}
+										</div>
+									) : null}
+
 
 									<div style={{ marginTop: "10px", opacity: .85 }}>
 										Qty: <b>{i.qty || 1}</b>

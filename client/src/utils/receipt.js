@@ -39,7 +39,7 @@ export function buildReceiptText({ orderId, track, now, groupItems }) {
         if (tops.length) lines.push(`  Toppings: ${tops.join(", ")}`)
 
         if (it?.notes) lines.push(`  Notes   : ${it.notes}`)
-
+        if (it?.deliveryNotes) lines.push(`  Notes   : ${it.deliveryNotes}`)
         lines.push("")
     }
 

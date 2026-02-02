@@ -10,7 +10,9 @@ const orderItemSchema = new Schema({
     display: { type: Schema.Types.Mixed, default: null },
     config: { type: Schema.Types.Mixed, default: null },
     notes: { type: String, default: "" },
+    deliveryNotes: { type: String, default: "" },
 }, { _id: false })
+
 
 const kitchenItemSchema = new Schema({
     startedAt: { type: Date, default: null },
@@ -27,14 +29,12 @@ const kitchenItemSchema = new Schema({
     canceledBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
 }, { _id: false })
 
-
-
 const orderSchema = new Schema({
-    /*For User to track order */
     userId: { type: Schema.Types.ObjectId, ref: "User", default: null, index: true },
 
     customerName: { type: String, default: "Guest" },
     notes: { type: String, default: "" },
+    deliveryNotes: { type: String, default: "" },
 
     size: { type: String },
     crust: { type: String },
@@ -50,7 +50,7 @@ const orderSchema = new Schema({
     status: {
         type: String,
         enum: ["RECEIVED", "IN_PROGRESS", "COMPLETED", "CANCELED"],
-        default: "RECEIVED"
+        default: "RECEIVED",
     },
 
     archived: { type: Boolean, default: false, index: true },
@@ -60,7 +60,7 @@ const orderSchema = new Schema({
     kitchen: {
         items: { type: [kitchenItemSchema], default: [] },
     },
-
 }, { timestamps: true })
+
 
 export default model("Order", orderSchema)
