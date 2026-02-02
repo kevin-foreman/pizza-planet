@@ -40,7 +40,7 @@ app.use(express.json())
 app.use(morgan("dev"))
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")))
-app.use("/Sprites", express.static(path.join(__dirname, "../client/public/Sprites")))
+app.use("/Sprites", express.static(path.join(__dirname, "../client/public/Sprites/Pizza")))
 
 // cache control for api
 app.use("/api", (req, res, next) => {
@@ -91,39 +91,96 @@ app.get("/api/menu", async (req, res, next) => {
 
 app.get("/api/pricing", async (req, res) => {
   try {
-    const doc = await Pricing.findOneAndUpdate(
-      { key: "singleton" },
-      {
-        $setOnInsert: {
-          key: "singleton",
-          basePrice: 10.99,
-          taxRate: 0.082,
-          sizes: [
-            { id: "sm", label: "Small", mult: 1, image: "/Sprites/Pizza/pizza_Sauce.webp" },
-            { id: "md", label: "Medium", mult: 1.25, image: "/Sprites/Pizza/pizza_Sauce.webp" },
-            { id: "lg", label: "Large", mult: 1.5, image: "/Sprites/Pizza/pizza_Sauce.webp" },
-          ],
+    const DEFAULT_SIZES = [
+      { id: "sm", label: "Small", mult: 1, image: "/Sprites/Pizza/pizza_Sauce.webp" },
+      { id: "md", label: "Medium", mult: 1.25, image: "/Sprites/Pizza/pizza_Sauce.webp" },
+      { id: "lg", label: "Large", mult: 1.5, image: "/Sprites/Pizza/pizza_Sauce.webp" },
+    ]
 
-          crusts: [
-            { id: "thin", label: "Thin", image: "/Sprites/Pizza/pizza_Thin_Base.webp" },
-            { id: "hand", label: "Hand Tossed", image: "/Sprites/Pizza/pizza_Hand_Base.webp" },
-            { id: "pan", label: "Pan", image: "/Sprites/Pizza/pizza_Pan_Base.webp" },
-          ],
-          sauces: [
-            { id: "red", label: "Tomato", image: "/Sprites/Pizza/pizza_Red_Sauce.webp" },
-            { id: "white", label: "White Sauce", image: "/Sprites/Pizza/pizza_White_Sauce.webp" },
-            { id: "bbq", label: "BBQ", image: "/Sprites/Pizza/pizza_BBQ_Sauce.webp" },
-          ],
-        },
-      },
-      { new: true }
-    ).lean()
-    res.json(doc)
+    const DEFAULT_CRUSTS = [
+      { id: "thin", label: "Thin", image: "/Sprites/Pizza/pizza_Thin_Base.webp" },
+      { id: "hand", label: "Hand Tossed", image: "/Sprites/Pizza/pizza_Hand_Base.webp" },
+      { id: "pan", label: "Pan", image: "/Sprites/Pizza/pizza_Pan_Base.webp" },
+    ]
+
+    const DEFAULT_SAUCES = [
+      { id: "red", label: "Tomato", image: "/Sprites/Pizza/pizza_Red_Sauce.webp" },
+      { id: "white", label: "White Sauce", image: "/Sprites/Pizza/pizza_White_Sauce.webp" },
+      { id: "bbq", label: "BBQ", image: "/Sprites/Pizza/pizza_BBQ_Sauce.webp" },
+    ]
+
+    const sizeImg = new Map(DEFAULT_SIZES.map(x => [x.id, x.image]))
+    const crustImg = new Map(DEFAULT_CRUSTS.map(x => [x.id, x.image]))
+    const sauceImg = new Map(DEFAULT_SAUCES.map(x => [x.id, x.image]))
+
+    let doc = await Pricing.findOne({ key: "singleton" })
+    if (!doc) {
+      doc = await Pricing.create({
+        key: "singleton",
+        basePrice: 10.99,
+        taxRate: 0.082,
+        sizes: DEFAULT_SIZES,
+        crusts: DEFAULT_CRUSTS,
+        sauces: DEFAULT_SAUCES,
+      })
+      return res.json(doc.toObject())
+    }
+
+    let changed = false
+
+    if (!Array.isArray(doc.sizes) || !doc.sizes.length) {
+      doc.sizes = DEFAULT_SIZES
+      changed = true
+    } else {
+      doc.sizes = doc.sizes.map(s => {
+        const img = String(s.image || "")
+        if (img) return s
+        const d = sizeImg.get(String(s.id || ""))
+        if (!d) return s
+        changed = true
+        return { ...s, image: d }
+      })
+    }
+
+    if (!Array.isArray(doc.crusts) || !doc.crusts.length) {
+      doc.crusts = DEFAULT_CRUSTS
+      changed = true
+    } else {
+      doc.crusts = doc.crusts.map(c => {
+        const img = String(c.image || "")
+        if (img) return c
+        const d = crustImg.get(String(c.id || ""))
+        if (!d) return c
+        changed = true
+        return { ...c, image: d }
+      })
+    }
+
+    if (!Array.isArray(doc.sauces) || !doc.sauces.length) {
+      doc.sauces = DEFAULT_SAUCES
+      changed = true
+    } else {
+      doc.sauces = doc.sauces.map(s => {
+        const img = String(s.image || "")
+        if (img) return s
+        const d = sauceImg.get(String(s.id || ""))
+        if (!d) return s
+        changed = true
+        return { ...s, image: d }
+      })
+    }
+
+    if (typeof doc.taxRate !== "number") doc.taxRate = 0.082
+
+    if (changed) await doc.save()
+
+    res.json(doc.toObject())
   } catch (e) {
     console.error("GET /api/pricing failed:", e)
     res.status(500).send(e?.message || String(e))
   }
 })
+
 
 app.put("/api/pricing", async (req, res) => {
   try {
