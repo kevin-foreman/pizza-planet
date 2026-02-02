@@ -187,12 +187,14 @@ export default function AdminPricingPage() {
 						/>
 					</div>
 				))}
-				<div className="admin-grid head crust">
-					<div>Code</div>
-					<div>Name</div>
-					<div>Image path</div>
-					<div>Price</div>
-				</div>
+<div className="admin-grid head crust">
+	<div>Code</div>
+	<div>Name</div>
+	<div>Image path</div>
+	<div>Preview</div>
+	<div>Price</div>
+</div>
+
 
 				<h2>Crusts</h2>
 				{(pricing.crusts || []).map((c, idx) => (
