@@ -35,15 +35,18 @@ const __dirname = path.dirname(__filename)
 
 const app = express()
 
-app.use(cors({origin:true,credentials:true}))
+app.use(cors({ origin: true, credentials: true }))
 app.use(express.json())
 app.use(morgan("dev"))
 
+app.use("/uploads", express.static(path.join(__dirname, "uploads")))
+app.use("/Sprites", express.static(path.join(__dirname, "../client/public/Sprites")))
+
+// cache control for api
 app.use("/api", (req, res, next) => {
   res.set("Cache-Control", "no-store")
   next()
 })
-app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     return res.status(400).json({ message: err.message })
@@ -113,7 +116,7 @@ app.get("/api/pricing", async (req, res) => {
           ],
         },
       },
-      { new: true}
+      { new: true }
     ).lean()
     res.json(doc)
   } catch (e) {
