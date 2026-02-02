@@ -35,9 +35,7 @@ const __dirname = path.dirname(__filename)
 
 const app = express()
 
-
-
-app.use(cors({ origin: ["http://localhost:5173", "http://localhost:4000"] }))
+app.use(cors({origin:true,credentials:true}))
 app.use(express.json())
 app.use(morgan("dev"))
 
@@ -115,7 +113,7 @@ app.get("/api/pricing", async (req, res) => {
           ],
         },
       },
-      { new: true, upsert: true }
+      { new: true}
     ).lean()
     res.json(doc)
   } catch (e) {
