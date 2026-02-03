@@ -368,7 +368,7 @@ export default function PizzaBuilderPage() {
 					</div>
 
 					<div>
-						<div className="option-title">Order Notes: </div>
+						<div className="option-title">Delivery Notes: </div>
 						<textarea
 							placeholder="e.g. extra cheese, no onions, well done"
 							value={notes}

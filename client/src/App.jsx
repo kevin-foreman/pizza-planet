@@ -17,9 +17,12 @@ function App() {
 				</main>
 				<Footer />
 			</div>
-			<pre style={{ position: 'fixed', left: '16px', bottom: '16px', zIndex: 999999 }}>
-				{JSON.stringify(user, null, 2)}
-			</pre>
+{/* DEBUG FOR BOTTOM LEFT
+<pre style={{ position: 'fixed', left: '16px', bottom: '16px', zIndex: 999999 }}>
+	{JSON.stringify(user, null, 2)}
+</pre>
+*/}
+
 		</div>
 	)
 }

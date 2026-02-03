@@ -461,8 +461,8 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById, delive
 
             </div>
 
-            {order.notes ? (<div className="order-notes">Notes: {order.notes}</div>) : null}
-            {order.deliveryNotes ? (<div className="order-notes">Order Notes: {order.deliveryNotes}</div>) : null}
+            {order.notes ? (<div className="order-notes">Order Notes: {order.notes}</div>) : null}
+            {order.deliveryNotes ? (<div className="order-notes">Delivery Notes: {order.deliveryNotes}</div>) : null}
             <div className="order-notes" style={{ marginTop: 12 }}>
                 <div style={{ fontWeight: 900, marginBottom: 8 }}>Toppings</div>
 
@@ -480,10 +480,16 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById, delive
                     </>
                 )}
             </div>
+            {/*DEBUG FOR ORDERS
             <div className="muted" style={{ fontSize: 12 }}>
                 done:{doneCount}/{toppings.length} allDone:{String(allDone)} oven:{String(ovenConfirmed)} cooked:{String(cookedConfirmed)}
-            </div>
-
+            </div> */}
+            {deliveryNotes ? (
+                <div className="driver-notes">
+                    <div className="muted">Tell the driver:</div>
+                    <div className="mono">{deliveryNotes}</div>
+                </div>
+            ) : null}
             <div className="order-actions">
                 {/* Start */}
                 {isPending && (
@@ -493,12 +499,7 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById, delive
                         </button>
                     </div>
                 )}
-                {deliveryNotes ? (
-                    <div className="driver-notes">
-                        <div className="muted">Tell the driver:</div>
-                        <div className="mono">{deliveryNotes}</div>
-                    </div>
-                ) : null}
+
                 {/* Mark done */}
                 {isInProgress && showMarkReadyOnly && (
                     <div className="order-actions-right">
@@ -540,12 +541,6 @@ export default function StaffOrderCard({ order, onPatch, toppingNameById, delive
                             {isInProgress && order.notes && !instructionsConfirmed && (
                                 <button className="btn btn-success" onClick={onConfirmInstructions}>
                                     Confirm Instructions Read
-                                </button>
-                            )}
-
-                            {isInProgress && deliveryNotes && !deliveryConfirmed && (
-                                <button className="btn btn-success" onClick={onConfirmDelivery}>
-                                    Confirm Delivery Notes Read
                                 </button>
                             )}
 
